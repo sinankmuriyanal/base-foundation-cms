@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 15 23 42;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-slate-900;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold leading-tight;
+  }
+}
+
+@layer utilities {
+  .container-narrow {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  .container-wide {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Rich text blog content */
+.prose-blog {
+  @apply text-slate-700 leading-relaxed;
+}
+.prose-blog p { @apply mb-4; }
+.prose-blog h2 { @apply text-2xl font-bold text-slate-900 mt-8 mb-3; }
+.prose-blog h3 { @apply text-xl font-semibold text-slate-800 mt-6 mb-2; }
+.prose-blog img { @apply rounded-xl my-6 w-full object-cover; }
+.prose-blog ul { @apply list-disc pl-5 mb-4 space-y-1; }
+.prose-blog ol { @apply list-decimal pl-5 mb-4 space-y-1; }
+.prose-blog blockquote { @apply border-l-4 border-brand pl-4 italic text-slate-600 my-4; }

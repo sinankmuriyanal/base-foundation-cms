@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\hp\\\\OneDrive\\\\Desktop\\\\claude\\\\Base Foundation\" -Recurse -Force)",
+      "Bash(Select-Object -First 50)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(git ls-tree *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git -C \"C:/Users/hp/OneDrive/Desktop/claude/Base Foundation\" remote -v)",
+      "Bash(gh repo *)",
+      "Bash(git remote *)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes --skip-install)",
+      "Skill(frontend-design)",
+      "Bash(npm install *)",
+      "Bash(powershell -ExecutionPolicy Bypass -File setup.ps1)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git init *)"
+    ]
+  }
+}

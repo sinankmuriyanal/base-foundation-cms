@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# python
+scripts/__pycache__/
+scripts/*.pyc
+scripts/blogs_raw.json
+scripts/blogs_seeded.json
+scripts/gallery_seeded.json
+serviceAccountKey.json
