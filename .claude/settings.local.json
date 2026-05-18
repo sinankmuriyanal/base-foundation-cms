@@ -19,7 +19,9 @@
       "Bash(powershell -ExecutionPolicy Bypass -File setup.ps1)",
       "Bash(npx tsc *)",
       "Bash(git add *)",
-      "Bash(git init *)"
+      "Bash(git init *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

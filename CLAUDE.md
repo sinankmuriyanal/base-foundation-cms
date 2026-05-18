@@ -79,3 +79,5 @@ siteName, tagline, contactEmail, updatedAt
 
 ## Changelog
 - 2026-05-18: Initial build — Next.js 14 CMS with Firebase + Cloudinary, public site + full admin panel, Python migration scripts for 23 blogs + 71 gallery images
+
+- [2026-05-18] init: Base Foundation CMS — Next.js 14 + Firebase + Cloudinary
