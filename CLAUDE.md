@@ -225,3 +225,5 @@ python scripts/seed_firebase.py
 ## Changelog
 
 - **2026-05-18:** Initial build — Next.js 14 CMS with Firebase + Cloudinary, public site + full admin panel, Python migration scripts for 23 blogs + 71 gallery images. TypeScript passing. Pushed to GitHub.
+
+- [2026-05-18] docs: update CLAUDE.md with full project state and pending tasks for next session
