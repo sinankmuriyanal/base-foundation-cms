@@ -58,15 +58,22 @@ _cache: dict[str, dict] = {}
 def upload(path: str, public_id: str) -> dict | None:
     if public_id in _cache:
         return _cache[public_id]
-    try:
-        result = cloudinary.uploader.upload(
-            f"{BASE_RAW}/{quote(path)}",
-            public_id=public_id,
-            overwrite=False,
-            resource_type="image",
-        )
-    except Exception as e:  # report and continue; the summary lists failures
-        print(f"    FAILED {path}: {e}")
+    # Some old pages linked img/new/x.png when the file actually lives at img/x.png.
+    candidates = [path] + ([f"img/{Path(path).name}"] if path != f"img/{Path(path).name}" else [])
+    result = None
+    for candidate in candidates:
+        try:
+            result = cloudinary.uploader.upload(
+                f"{BASE_RAW}/{quote(candidate)}",
+                public_id=public_id,
+                overwrite=False,
+                resource_type="image",
+            )
+            break
+        except Exception as e:  # report and continue; the summary lists failures
+            last_error = e
+    if result is None:
+        print(f"    FAILED {path}: {last_error}")
         return None
     out = {"secure_url": result["secure_url"], "public_id": result["public_id"]}
     _cache[public_id] = out
