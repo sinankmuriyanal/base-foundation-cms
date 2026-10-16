@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,15 @@ export default function GalleryGrid({ images }: Props) {
   const [category, setCategory] = useState("All");
   const [lightbox, setLightbox] = useState<GalleryImage | null>(null);
 
-  const allCats = ["All", ...GALLERY_CATEGORIES];
+  // Only offer filters that have images
+  const allCats = ["All", ...GALLERY_CATEGORIES.filter((c) => images.some((img) => img.category === c))];
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setLightbox(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   const filtered = useMemo(() => {
     if (category === "All") return images;
@@ -45,9 +53,11 @@ export default function GalleryGrid({ images }: Props) {
       {/* Masonry grid */}
       <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 space-y-4">
         {filtered.map((img) => (
-          <div
+          <button
             key={img.id}
-            className="break-inside-avoid cursor-pointer group relative overflow-hidden rounded-xl bg-slate-100"
+            type="button"
+            aria-label={`View ${img.caption || img.category} photo`}
+            className="block w-full break-inside-avoid cursor-pointer group relative overflow-hidden rounded-xl bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             onClick={() => setLightbox(img)}
           >
             <Image
@@ -63,7 +73,7 @@ export default function GalleryGrid({ images }: Props) {
                 {img.category}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -74,10 +84,16 @@ export default function GalleryGrid({ images }: Props) {
       {/* Lightbox */}
       {lightbox && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={lightbox.caption || lightbox.category}
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setLightbox(null)}
         >
           <button
+            type="button"
+            aria-label="Close"
+            autoFocus
             className="absolute top-4 right-4 text-white/70 hover:text-white"
             onClick={() => setLightbox(null)}
           >

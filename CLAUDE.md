@@ -116,14 +116,18 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 - Auth hardening (session cookies, admin claim, server gate, signed uploads, sanitized HTML, validation)
 - Real content ported: programmes (8), join, donate, about, contact; placeholder email/claims removed
 - Legacy URL redirects (all 23 posts mapped), sitemap, robots
-- Migration scripts rewritten; extraction verified (23 posts, 67 gallery images)
+- Migration scripts rewritten and run
+
+### Live data (Firebase project `base-cms-e3bfd`, Cloudinary cloud in `.env.local`)
+- Firestore seeded: 23 posts (`legacy-post-N`), 66 gallery images (`legacy-gallery-NNN`; `img/blog_10B.jpg` never existed in the old repo), `settings/site`
+- Admin: sinankmuriyanal@gmail.com has the `admin` claim; Firestore rules deployed via the Rules API (public read 200, anonymous write 403 verified)
+- Verified end-to-end against live services: session login, dashboard, signed Cloudinary upload, create/publish/delete post, Cloudinary cleanup, logout, forged-cookie redirect
 
 ### Pending (needs the owner)
-- [ ] Create Firebase project (Firestore asia-south1, email/password auth, disable sign-up) + admin user + service account key
-- [ ] Create Cloudinary account; fill `.env.local`
-- [ ] Run upload → seed → set_admin_claim; deploy rules; full admin end-to-end check
+- [ ] Try the admin login form in a browser (only the server path was tested; password not available to Claude)
 - [ ] Formspree endpoints for contact + join
 - [ ] Donation bank/UPI details → `DONATION` in `lib/site.ts`
+- [ ] Review migrated posts in admin: approximate publish dates, categories for posts 5/6, add gallery captions
 - [ ] Vercel deploy + env vars; then DNS cutover of basefoundation.in, remove `CNAME`/Pages from the old repo, archive `sinankmuriyanal/Base` (confirm first)
 
 ---
@@ -132,3 +136,4 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 
 - **2026-05-18:** Initial build — Next.js 14 CMS with Firebase + Cloudinary, public site + admin panel, migration scripts.
 - **2026-10-16:** Upgraded to Next 16/React 19/Tiptap 3 (the Next 14 build had been failing on `next.config.ts`). Replaced raw-ID-token cookie with revocable session cookies gated on an admin claim, added a server-side admin gate, signed Cloudinary uploads, input validation and HTML sanitizing, and fixed the gallery multi-upload and editor bugs. Ported the real old-site content (programmes, join, donate, about, contact) and removed placeholder contact details and unverified stats. Added legacy redirects, sitemap and robots, rewrote the migration scripts (proper parsing, per-post images, idempotent seeding), and added Vitest + Playwright suites.
+- **2026-10-16 (later):** Ran the migration against the live Firebase + Cloudinary projects (23 posts, 66 gallery images), granted the admin claim, and deployed Firestore rules. Made gallery photos keyboard-accessible buttons with a labelled, Escape-closable lightbox, and hid empty category filters. The full suite passes with real data (24 unit + 34 e2e), plus a live admin round-trip.

@@ -40,3 +40,6 @@ serviceAccountKey.json
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# Firebase service account keys (any download name)
+*-firebase-adminsdk-*.json

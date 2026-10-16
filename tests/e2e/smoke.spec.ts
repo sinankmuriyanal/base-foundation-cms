@@ -55,10 +55,12 @@ test("blog category filter and search narrow the list", async ({ page }) => {
 
 test("gallery lightbox opens when images exist", async ({ page }) => {
   await page.goto("/gallery");
-  const images = page.locator("main img");
-  test.skip((await images.count()) === 0, "no gallery data in this build");
-  await images.first().click();
-  await expect(page.getByRole("button", { name: /close/i })).toBeVisible();
+  const photos = page.getByRole("button", { name: /^View .* photo$/ });
+  test.skip((await photos.count()) === 0, "no gallery data in this build");
+  await photos.first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toBeHidden();
 });
 
 test("admin pages redirect to login when signed out", async ({ page }) => {
