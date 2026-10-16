@@ -1,91 +1,100 @@
-import { Heart, Target, Eye } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 export const metadata = {
   title: "About | Base Foundation",
-  description: "Learn about Base Foundation — who we are, what we do, and why we do it.",
+  description: "Base Foundation is an NGO in Birbhum, West Bengal dedicated to rural development through education and social welfare.",
 };
 
-const VALUES = [
-  {
-    icon: Heart,
-    title: "Community First",
-    body: "Every programme starts with listening — understanding what a village actually needs, not what we assume.",
-  },
-  {
-    icon: Target,
-    title: "Systemic Change",
-    body: "We don't just distribute aid. We train teachers, map career paths, and build lasting infrastructure.",
-  },
-  {
-    icon: Eye,
-    title: "Radical Transparency",
-    body: "Our blog documents every school visit, every training session. If we did it, you'll read about it.",
-  },
+const TEAM = [
+  { name: "Dr Munkir Hossain", role: "President" },
+  { name: "Abdul Nafih Hudawi", role: "Secretary" },
+  { name: "Sidheekul Akbar Hudawi", role: "Treasurer" },
 ];
+
+function initials(name: string) {
+  return name
+    .replace(/^Dr\s+/i, "")
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+}
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-cream pt-28 pb-24">
-      <div className="container-narrow">
-        {/* Header */}
-        <div className="mb-16">
+      <div className="container-wide">
+        <PageHeader
+          eyebrow="About the organization"
+          title="About Base Foundation"
+          intro="A non-governmental organization dedicated to rural development through education and social welfare, based in the Birbhum district of West Bengal."
+        />
+
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-12 lg:gap-20 mb-24">
+          <div className="space-y-5 text-slate-600 leading-relaxed">
+            <p>
+              Since its establishment, our organization has been committed to empowering rural communities,
+              enhancing educational opportunities, and improving the overall well-being of rural residents.
+            </p>
+            <p>
+              We strive to address societal challenges such as poverty, education, healthcare, and environmental
+              sustainability. Our team of dedicated professionals and volunteers work to implement innovative and
+              sustainable solutions that uplift the lives of marginalized individuals and communities.
+            </p>
+            <p>
+              Through collaborative efforts we aim to create lasting change by providing education, vocational
+              training, and skill development programs that empower individuals and enhance their employability.
+            </p>
+          </div>
+
+          <div className="space-y-px bg-ink/10 border border-ink/10 rounded-3xl overflow-hidden">
+            {[
+              {
+                label: "Our Mission",
+                body: "To uplift the rural population of West Bengal by providing quality education, fostering sustainable development, and promoting social welfare initiatives — creating an enabling environment where individuals reach their full potential and contribute to the development of their community.",
+              },
+              {
+                label: "Our Vision",
+                body: "A future where every individual in West Bengal has access to quality education, enjoys a high standard of living, and actively participates in community growth — a strong foundation for sustainable rural development.",
+              },
+            ].map((item) => (
+              <div key={item.label} className="bg-white p-8 sm:p-10">
+                <p className="text-xs uppercase tracking-[0.2em] text-accent mb-3">{item.label}</p>
+                <p className="font-display text-xl sm:text-2xl text-ink leading-snug">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <section className="mb-24">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-px w-8 bg-accent" />
-            <span className="text-xs uppercase tracking-[0.2em] text-brand">Our Story</span>
+            <span className="text-xs uppercase tracking-[0.2em] text-brand">Team</span>
           </div>
-          <h1 className="font-display text-5xl md:text-6xl text-ink leading-tight mb-6">
-            About Base Foundation
-          </h1>
-          <p className="text-lg text-slate-600 leading-relaxed max-w-2xl">
-            Base Foundation is a nonprofit working to close the educational and career opportunity gap
-            for marginalized students across rural West Bengal, India. We believe that geography and
-            economic circumstance should never determine a student&rsquo;s ceiling.
+          <h2 className="font-display text-4xl text-ink mb-10">Meet our team</h2>
+          <ul className="grid sm:grid-cols-3 gap-6">
+            {TEAM.map((m) => (
+              <li key={m.name} className="bg-white rounded-2xl border border-slate-100 p-8">
+                <div className="w-16 h-16 rounded-full bg-brand text-cream font-display text-xl flex items-center justify-center mb-6">
+                  {initials(m.name)}
+                </div>
+                <p className="font-display text-xl text-ink">{m.name}</p>
+                <p className="text-sm text-accent font-medium mt-1">{m.role}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-brand rounded-3xl p-10 text-white">
+          <p className="font-display text-2xl sm:text-3xl leading-snug max-w-xl">
+            &ldquo;Dreaming is your responsibility, but helping you realize that dream is ours.&rdquo;
           </p>
+          <Link href="/join" className="shrink-0 inline-flex items-center gap-2 bg-accent text-ink px-6 py-3 rounded-full text-sm font-medium hover:bg-white transition-colors">
+            Become our volunteer <ArrowRight size={16} />
+          </Link>
         </div>
-
-        {/* Origin */}
-        <div className="bg-white rounded-3xl border border-slate-100 p-10 mb-12">
-          <h2 className="font-display text-3xl text-ink mb-5">How it started</h2>
-          <div className="space-y-4 text-slate-600 leading-relaxed">
-            <p>
-              Base Foundation grew out of a simple observation: talented students in Birbhum and
-              Murshidabad districts were dropping out of education not because of lack of ability,
-              but because of lack of direction — no career guidance, undertrained teachers, and
-              zero access to resources that urban students take for granted.
-            </p>
-            <p>
-              Our first initiative was a need assessment in Paikur village, which revealed the
-              depth of teacher shortages and the complete absence of career counselling in rural schools.
-              That report became our manifesto.
-            </p>
-            <p>
-              Since then, we have launched the Map Bengal project, the TeachCraft training series,
-              Base Classrooms, and the Madhyamik Sahayak programme — reaching thousands of students
-              across five districts.
-            </p>
-          </div>
-        </div>
-
-        {/* Values */}
-        <h2 className="font-display text-3xl text-ink mb-8">What guides us</h2>
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
-          {VALUES.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="bg-brand-50 rounded-2xl p-8 border border-brand/10">
-              <Icon size={24} className="text-brand mb-4" />
-              <h3 className="font-display text-xl text-ink mb-2">{title}</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">{body}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Quote */}
-        <blockquote className="border-l-4 border-accent pl-8 py-4">
-          <p className="font-display text-2xl text-ink leading-snug">
-            &ldquo;Dreaming is your responsibility,<br />
-            but helping you realize that dream is ours.&rdquo;
-          </p>
-          <footer className="mt-4 text-sm text-slate-400">— Base Foundation</footer>
-        </blockquote>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { SITE } from "@/lib/site";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -11,6 +12,7 @@ const fraunces = Fraunces({
 const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE.url),
   title: "Base Foundation",
   description: "Empowering marginalized students through education across rural West Bengal",
   keywords: ["NGO", "education", "West Bengal", "Base Foundation", "career mapping"],
@@ -23,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body className={`${fraunces.variable} ${dmSans.variable} font-sans antialiased bg-cream text-ink`}>
         {children}
       </body>

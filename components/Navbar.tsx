@@ -1,21 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NAV_LINKS } from "@/lib/site";
 
-const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/blog", label: "Blog" },
-  { href: "/gallery", label: "Gallery" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-];
+function isActive(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -27,7 +26,7 @@ export default function Navbar() {
     <header
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled
+        scrolled || open
           ? "bg-cream/95 backdrop-blur-sm border-b border-green/10 shadow-sm"
           : "bg-transparent"
       )}
@@ -51,24 +50,37 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop links */}
-        <ul className="hidden md:flex items-center gap-8">
+        <ul className="hidden lg:flex items-center gap-7">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
-                className="text-sm font-medium text-slate-700 hover:text-brand transition-colors relative after:absolute after:left-0 after:bottom-[-2px] after:h-[1.5px] after:w-0 after:bg-accent after:transition-all hover:after:w-full"
+                aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                className={cn(
+                  "text-sm font-medium hover:text-brand transition-colors relative after:absolute after:left-0 after:bottom-[-2px] after:h-[1.5px] after:bg-accent after:transition-all hover:after:w-full",
+                  isActive(pathname, link.href) ? "text-brand after:w-full" : "text-slate-700 after:w-0"
+                )}
               >
                 {link.label}
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href="/donate"
+              className="inline-flex bg-brand text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-brand-dark transition-colors"
+            >
+              Donate
+            </Link>
+          </li>
         </ul>
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-brand"
+          className="lg:hidden p-2 text-brand"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
+          aria-expanded={open}
         >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
@@ -76,19 +88,31 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       {open && (
-        <div className="md:hidden bg-cream border-t border-green/10 px-6 py-4">
+        <div className="lg:hidden bg-cream border-t border-green/10 px-6 py-4">
           <ul className="space-y-3">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="block text-base font-medium text-slate-700 py-1 border-b border-slate-100"
+                  className={cn(
+                    "block text-base font-medium py-1 border-b border-slate-100",
+                    isActive(pathname, link.href) ? "text-brand" : "text-slate-700"
+                  )}
                   onClick={() => setOpen(false)}
                 >
                   {link.label}
                 </Link>
               </li>
             ))}
+            <li className="pt-2">
+              <Link
+                href="/donate"
+                className="block text-center bg-brand text-white py-2.5 rounded-full text-sm font-medium"
+                onClick={() => setOpen(false)}
+              >
+                Donate
+              </Link>
+            </li>
           </ul>
         </div>
       )}

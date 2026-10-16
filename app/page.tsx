@@ -2,21 +2,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { getPublishedBlogs } from "@/lib/blogs";
 import { formatDate } from "@/lib/utils";
-import { ArrowRight, BookOpen, Users, MapPin } from "lucide-react";
+import { ArrowRight, BookOpen, Layers, MapPin } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-const STATS = [
-  { value: "23+", label: "Projects Documented", icon: BookOpen },
-  { value: "1,000+", label: "Students Reached", icon: Users },
-  { value: "5", label: "Districts Active", icon: MapPin },
-];
+import { PROGRAMMES } from "@/lib/programmes";
 
 export const revalidate = 3600;
 
 export default async function HomePage() {
   const blogs = await getPublishedBlogs();
   const latestBlogs = blogs.slice(0, 3);
+  const stats = [
+    { value: String(blogs.length || "—"), label: "Field reports published", icon: BookOpen },
+    { value: String(PROGRAMMES.length), label: "Programmes running", icon: Layers },
+    { value: "Birbhum", label: "Home district, West Bengal", icon: MapPin },
+  ];
 
   return (
     <>
@@ -65,8 +65,8 @@ export default async function HomePage() {
                 </h1>
 
                 <p className="text-lg text-slate-600 max-w-xl leading-relaxed mb-10">
-                  We work with marginalized students across rural West Bengal — mapping careers,
-                  training teachers, and building classrooms where hope was missing.
+                  Join us in our mission to empower rural communities and create a strong foundation
+                  for lasting change through education, upliftment, and a wide range of impactful activities.
                 </p>
 
                 <div className="flex flex-wrap gap-4">
@@ -78,17 +78,17 @@ export default async function HomePage() {
                     <ArrowRight size={16} />
                   </Link>
                   <Link
-                    href="/about"
+                    href="/programmes"
                     className="inline-flex items-center gap-2 border border-brand/30 text-brand px-7 py-3.5 rounded-full text-sm font-medium hover:bg-brand/5 transition-colors"
                   >
-                    About Us
+                    Our Programmes
                   </Link>
                 </div>
               </div>
 
               <div className="hidden lg:flex flex-col gap-6">
-                {STATS.map((stat) => (
-                  <div key={stat.label} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm w-52">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm w-56">
                     <stat.icon size={20} className="text-accent mb-3" />
                     <div className="font-display text-4xl text-brand">{stat.value}</div>
                     <div className="text-xs text-slate-500 mt-1 leading-snug">{stat.label}</div>
@@ -98,9 +98,9 @@ export default async function HomePage() {
             </div>
 
             <div className="lg:hidden grid grid-cols-3 gap-4 mt-12">
-              {STATS.map((stat) => (
+              {stats.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="font-display text-3xl text-brand">{stat.value}</div>
+                  <div className="font-display text-2xl sm:text-3xl text-brand">{stat.value}</div>
                   <div className="text-[11px] text-slate-500 mt-0.5">{stat.label}</div>
                 </div>
               ))}
@@ -125,9 +125,9 @@ export default async function HomePage() {
               </div>
               <div>
                 <p className="text-white/70 leading-relaxed">
-                  From career orientation camps to teacher training programs, Base Foundation builds
-                  systematic change across the Murarai, Rampurhat, and Jangipur subdivisions —
-                  one school, one student, one district at a time.
+                  Experience the transformative power of community development as we work towards
+                  empowering rural lives, building a solid foundation through education, upliftment,
+                  and various empowering initiatives.
                 </p>
               </div>
             </div>
@@ -193,15 +193,20 @@ export default async function HomePage() {
         {/* Programmes strip */}
         <section className="bg-brand-50 border-y border-brand/10 py-16">
           <div className="container-wide">
-            <h3 className="font-display text-2xl text-brand mb-8">Our programmes</h3>
+            <div className="flex items-end justify-between gap-6 mb-8">
+              <h3 className="font-display text-2xl text-brand">Our programmes</h3>
+              <Link href="/programmes" className="inline-flex items-center gap-2 text-sm text-brand font-medium hover:gap-3 transition-all">
+                All programmes <ArrowRight size={16} />
+              </Link>
+            </div>
             <div className="flex flex-wrap gap-3">
-              {["Career Mapping", "Base Classroom", "Teachers' Training", "Skill Enhancement", "Language Mastery", "Map Bengal"].map((cat) => (
+              {PROGRAMMES.map((p) => (
                 <Link
-                  key={cat}
-                  href={`/blog?category=${encodeURIComponent(cat)}`}
+                  key={p.slug}
+                  href={`/programmes/${p.slug}`}
                   className="px-5 py-2 rounded-full bg-white border border-brand/20 text-sm text-brand font-medium hover:bg-brand hover:text-white hover:border-brand transition-all"
                 >
-                  {cat}
+                  {p.title}
                 </Link>
               ))}
             </div>
