@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getClientAuth } from "@/lib/firebase";
 import { Eye, EyeOff, Lock } from "lucide-react";
 
 export default function AdminLoginPage() {
@@ -20,16 +20,24 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      const auth = getClientAuth();
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await cred.user.getIdToken();
 
-      await fetch("/api/auth", {
+      const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
+      // The server session cookie is the source of truth; drop the client-side Firebase session.
+      await signOut(auth);
 
-      router.push("/admin/dashboard");
+      if (res.ok) {
+        router.replace("/admin/dashboard");
+        router.refresh();
+      } else {
+        setError(res.status === 403 ? "This account does not have admin access." : "Sign-in failed. Try again.");
+      }
     } catch {
       setError("Invalid email or password.");
     } finally {
@@ -57,7 +65,7 @@ export default function AdminLoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/40 transition"
-              placeholder="admin@basefoundation.org"
+              placeholder="admin@example.com"
             />
           </div>
           <div>

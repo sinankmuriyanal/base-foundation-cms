@@ -13,12 +13,11 @@ export async function generateStaticParams() {
   return blogs.map((b) => ({ slug: b.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
-  const blog = await getBlogBySlug(params.slug);
+type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const blog = await getBlogBySlug(slug);
   if (!blog) return {};
   return {
     title: `${blog.title} | Base Foundation`,
@@ -27,12 +26,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogDetailPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const blog = await getBlogBySlug(params.slug);
+export default async function BlogDetailPage({ params }: Props) {
+  const { slug } = await params;
+  const blog = await getBlogBySlug(slug);
   if (!blog) notFound();
 
   return (

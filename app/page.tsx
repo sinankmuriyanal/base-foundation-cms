@@ -119,8 +119,8 @@ export default async function HomePage() {
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <h2 className="font-display text-3xl md:text-4xl leading-tight mb-4">
-                  "Dreaming is your responsibility,<br />
-                  helping you realize it is ours."
+                  &ldquo;Dreaming is your responsibility,<br />
+                  helping you realize it is ours.&rdquo;
                 </h2>
               </div>
               <div>

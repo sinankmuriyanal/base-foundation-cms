@@ -31,3 +31,11 @@ scripts/blogs_raw.json
 scripts/blogs_seeded.json
 scripts/gallery_seeded.json
 serviceAccountKey.json
+
+# python venv
+.venv/
+
+# tests
+/test-results/
+/playwright-report/
+/playwright/.cache/

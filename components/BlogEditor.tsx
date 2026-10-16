@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CldUploadWidget } from "next-cloudinary";
 import { BLOG_CATEGORIES } from "@/lib/types";
@@ -32,9 +32,10 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
   const [error, setError] = useState("");
 
   // Auto-generate slug from title for new posts
-  useEffect(() => {
-    if (isNew) setSlug(slugify(title));
-  }, [title, isNew]);
+  function handleTitleChange(value: string) {
+    setTitle(value);
+    if (isNew) setSlug(slugify(value));
+  }
 
   function addTag(e: React.KeyboardEvent) {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -69,7 +70,8 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
       router.push(`${basePath}/blogs`);
       router.refresh();
     } else {
-      setError("Failed to save. Try again.");
+      const data = await res.json().catch(() => null);
+      setError(data?.error ?? "Failed to save. Try again.");
     }
   }
 
@@ -84,7 +86,7 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
         <label className="block text-sm font-medium text-slate-700 mb-1.5">Title *</label>
         <input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => handleTitleChange(e.target.value)}
           className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/40 transition"
           placeholder="Post title"
         />
@@ -133,6 +135,7 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
           <div className="relative inline-block">
             <img src={featuredImage} alt="Featured" className="h-40 w-60 object-cover rounded-xl border border-slate-200" />
             <button
+              type="button"
               onClick={() => { setFeaturedImage(""); setCloudinaryPublicId(""); }}
               className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow border border-slate-200 text-slate-500 hover:text-red-500"
             >
@@ -141,7 +144,8 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
           </div>
         ) : (
           <CldUploadWidget
-            uploadPreset="blog_images"
+            signatureEndpoint="/api/admin/cloudinary-sign"
+            options={{ folder: "base-foundation/blogs", multiple: false, resourceType: "image" }}
             onSuccess={(result) => {
               if (result.info && typeof result.info === "object") {
                 setFeaturedImage((result.info as { secure_url: string }).secure_url);
@@ -185,7 +189,7 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
             {tags.map((tag) => (
               <span key={tag} className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full bg-brand-50 text-brand border border-brand/15">
                 {tag}
-                <button onClick={() => removeTag(tag)} className="hover:text-red-500">
+                <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500">
                   <X size={11} />
                 </button>
               </span>
@@ -214,7 +218,8 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
 
         <div className="flex gap-3">
           <button
-            onClick={() => router.push("/blogs")}
+            type="button"
+            onClick={() => router.push(`${basePath}/blogs`)}
             className="px-5 py-2.5 text-sm text-slate-600 hover:text-ink border border-slate-200 rounded-full transition"
           >
             Cancel

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { CldUploadWidget } from "next-cloudinary";
 import { Trash2, Upload, Pencil, Check, X } from "lucide-react";
 import { GALLERY_CATEGORIES } from "@/lib/types";
@@ -14,7 +13,6 @@ interface Props {
 }
 
 export default function GalleryManager({ initialImages }: Props) {
-  const router = useRouter();
   const [images, setImages] = useState(initialImages);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editCategory, setEditCategory] = useState("");
@@ -28,7 +26,7 @@ export default function GalleryManager({ initialImages }: Props) {
     if (!confirm("Delete this image? This cannot be undone.")) return;
     const res = await fetch(`/api/admin/gallery/${img.id}`, { method: "DELETE" });
     if (res.ok) {
-      setImages(images.filter((i) => i.id !== img.id));
+      setImages((prev) => prev.filter((i) => i.id !== img.id));
     }
   }
 
@@ -45,7 +43,7 @@ export default function GalleryManager({ initialImages }: Props) {
       body: JSON.stringify({ category: editCategory, caption: editCaption }),
     });
     if (res.ok) {
-      setImages(images.map((img) =>
+      setImages((prev) => prev.map((img) =>
         img.id === imgId ? { ...img, category: editCategory, caption: editCaption } : img
       ));
       setEditingId(null);
@@ -65,17 +63,17 @@ export default function GalleryManager({ initialImages }: Props) {
       }),
     });
     if (res.ok) {
-      const { id } = await res.json();
+      const { id, order } = await res.json();
       const newImg: GalleryImage = {
         id,
         imageUrl: info.secure_url,
         cloudinaryPublicId: info.public_id,
         category: "General",
         caption: "",
-        order: images.length,
+        order,
         createdAt: new Date().toISOString(),
       };
-      setImages([newImg, ...images]);
+      setImages((prev) => [...prev, newImg]);
     }
   }
 
@@ -84,9 +82,9 @@ export default function GalleryManager({ initialImages }: Props) {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 mb-8">
         <CldUploadWidget
-          uploadPreset="gallery_images"
+          signatureEndpoint="/api/admin/cloudinary-sign"
           onSuccess={handleUpload}
-          options={{ multiple: true, maxFiles: 10 }}
+          options={{ folder: "base-foundation/gallery", multiple: true, maxFiles: 10, resourceType: "image" }}
         >
           {({ open }) => (
             <button

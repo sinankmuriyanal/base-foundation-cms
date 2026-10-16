@@ -1,60 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, adminAuth } from "@/lib/firebase-admin";
-import { deleteCloudinaryImage } from "@/lib/cloudinary";
+import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
-import { slugify } from "@/lib/utils";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { deleteCloudinaryImage } from "@/lib/cloudinary";
+import { readJson, requireAdmin } from "@/lib/admin-api";
+import { parseBlogInput } from "@/lib/validation";
+import { isSlugTaken } from "@/lib/blogs";
 
-async function verifyAdmin(req: NextRequest): Promise<boolean> {
-  const token = req.cookies.get(process.env.AUTH_COOKIE_NAME || "base_admin_session")?.value;
-  if (!token) return false;
-  try {
-    await adminAuth.verifyIdToken(token);
-    return true;
-  } catch {
-    return false;
-  }
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function PUT(req: NextRequest, { params }: Ctx) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
+
+  const body = await readJson(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+
+  const parsed = parseBlogInput(body);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  const input = parsed.data;
+
+  const ref = getAdminDb().collection("blogs").doc(id);
+  const existing = await ref.get();
+  if (!existing.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const prev = existing.data()!;
+
+  if (await isSlugTaken(input.slug, id))
+    return NextResponse.json({ error: "Another post already uses this slug" }, { status: 409 });
+
+  // Keep the original publish date (migrated posts carry their real dates)
+  const publishedAt = prev.publishedAt ?? (input.published ? new Date().toISOString() : null);
+
+  await ref.update({ ...input, publishedAt, updatedAt: FieldValue.serverTimestamp() });
+
+  if (prev.cloudinaryPublicId && prev.cloudinaryPublicId !== input.cloudinaryPublicId)
+    await deleteCloudinaryImage(prev.cloudinaryPublicId);
+
+  revalidatePath("/", "layout");
+  return NextResponse.json({ success: true, slug: input.slug });
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!(await verifyAdmin(req)))
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function DELETE(req: NextRequest, { params }: Ctx) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
 
-  const body = await req.json();
-  const { title, category, content, featuredImage, cloudinaryPublicId, tags, author, published } = body;
-
-  const update: Record<string, unknown> = {
-    category: category || "General",
-    content: content || "",
-    featuredImage: featuredImage || null,
-    cloudinaryPublicId: cloudinaryPublicId || null,
-    tags: tags || [],
-    author: author || null,
-    published: !!published,
-    publishedAt: published ? new Date().toISOString() : null,
-    updatedAt: FieldValue.serverTimestamp(),
-  };
-
-  if (title?.trim()) {
-    update.title = title.trim();
-    update.slug = slugify(title);
-  }
-
-  await adminDb.collection("blogs").doc(params.id).update(update);
-  return NextResponse.json({ success: true });
-}
-
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!(await verifyAdmin(req)))
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const doc = await adminDb.collection("blogs").doc(params.id).get();
+  const ref = getAdminDb().collection("blogs").doc(id);
+  const doc = await ref.get();
   if (!doc.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const data = doc.data()!;
-  if (data.cloudinaryPublicId) {
-    await deleteCloudinaryImage(data.cloudinaryPublicId);
-  }
+  if (data.cloudinaryPublicId) await deleteCloudinaryImage(data.cloudinaryPublicId);
 
-  await adminDb.collection("blogs").doc(params.id).delete();
+  await ref.delete();
+  revalidatePath("/", "layout");
   return NextResponse.json({ success: true });
 }

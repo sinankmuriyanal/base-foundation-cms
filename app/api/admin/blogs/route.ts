@@ -1,43 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, adminAuth } from "@/lib/firebase-admin";
+import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
-import { slugify } from "@/lib/utils";
-
-async function verifyAdmin(req: NextRequest): Promise<boolean> {
-  const token = req.cookies.get(process.env.AUTH_COOKIE_NAME || "base_admin_session")?.value;
-  if (!token) return false;
-  try {
-    await adminAuth.verifyIdToken(token);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { getAdminDb } from "@/lib/firebase-admin";
+import { readJson, requireAdmin } from "@/lib/admin-api";
+import { parseBlogInput } from "@/lib/validation";
+import { isSlugTaken } from "@/lib/blogs";
 
 export async function POST(req: NextRequest) {
-  if (!(await verifyAdmin(req)))
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
 
-  const body = await req.json();
-  const { title, category, content, featuredImage, cloudinaryPublicId, tags, author, published } = body;
+  const body = await readJson(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 
-  if (!title?.trim()) return NextResponse.json({ error: "Title required" }, { status: 400 });
+  const parsed = parseBlogInput(body);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  const input = parsed.data;
 
-  const slug = slugify(title);
-  const ref = await adminDb.collection("blogs").add({
-    title: title.trim(),
-    slug,
-    category: category || "General",
-    content: content || "",
-    featuredImage: featuredImage || null,
-    cloudinaryPublicId: cloudinaryPublicId || null,
-    tags: tags || [],
-    author: author || null,
-    publishedAt: published ? new Date().toISOString() : null,
-    published: !!published,
+  if (await isSlugTaken(input.slug))
+    return NextResponse.json({ error: "Another post already uses this slug" }, { status: 409 });
+
+  const ref = await getAdminDb().collection("blogs").add({
+    ...input,
+    publishedAt: input.published ? new Date().toISOString() : null,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   });
 
-  return NextResponse.json({ id: ref.id, slug });
+  revalidatePath("/", "layout");
+  return NextResponse.json({ id: ref.id, slug: input.slug });
 }

@@ -1,20 +1,15 @@
-import Image from "next/image";
-import Link from "next/link";
 import { getPublishedBlogs } from "@/lib/blogs";
-import { BLOG_CATEGORIES } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
 import BlogListClient from "@/components/BlogListClient";
-import { BookOpen } from "lucide-react";
 
 export const revalidate = 3600;
 
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: { category?: string };
+  searchParams: Promise<{ category?: string }>;
 }) {
-  const blogs = await getPublishedBlogs();
-  const activeCategory = searchParams.category || "All";
+  const [blogs, { category }] = await Promise.all([getPublishedBlogs(), searchParams]);
+  const activeCategory = category || "All";
 
   return (
     <div className="min-h-screen bg-cream pt-28 pb-24">

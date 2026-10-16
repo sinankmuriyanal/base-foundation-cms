@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { LayoutDashboard, BookOpen, Image, LogOut } from "lucide-react";
 
 const LINKS = [
@@ -16,9 +14,9 @@ export default function AdminNav() {
   const router = useRouter();
 
   async function handleLogout() {
-    await signOut(auth);
     await fetch("/api/auth", { method: "DELETE" });
-    router.push("/admin/login");
+    router.replace("/admin/login");
+    router.refresh();
   }
 
   return (

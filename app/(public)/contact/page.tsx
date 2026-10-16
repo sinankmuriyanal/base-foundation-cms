@@ -86,8 +86,8 @@ export default function ContactPage() {
             <div className="bg-brand-50 rounded-2xl p-6 border border-brand/10">
               <h3 className="font-display text-xl text-ink mb-2">Volunteer with us</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                We're always looking for teachers, career counsellors, and skilled volunteers.
-                Send us a message describing your background and how you'd like to help.
+                We&rsquo;re always looking for teachers, career counsellors, and skilled volunteers.
+                Send us a message describing your background and how you&rsquo;d like to help.
               </p>
             </div>
           </div>

@@ -1,6 +1,6 @@
-import { adminDb } from "./firebase-admin";
+import { Timestamp, type DocumentData } from "firebase-admin/firestore";
+import { getAdminDb, isFirebaseAdminConfigured } from "./firebase-admin";
 import type { Blog } from "./types";
-import { Timestamp } from "firebase-admin/firestore";
 
 function toISO(val: unknown): string {
   if (val instanceof Timestamp) return val.toDate().toISOString();
@@ -8,7 +8,7 @@ function toISO(val: unknown): string {
   return new Date().toISOString();
 }
 
-function docToPost(id: string, data: FirebaseFirestore.DocumentData): Blog {
+function docToPost(id: string, data: DocumentData): Blog {
   return {
     id,
     title: data.title ?? "",
@@ -26,25 +26,25 @@ function docToPost(id: string, data: FirebaseFirestore.DocumentData): Blog {
   };
 }
 
+// Newest first by publish date; drafts (no publishedAt) fall back to createdAt.
+function byDateDesc(a: Blog, b: Blog): number {
+  return (b.publishedAt ?? b.createdAt).localeCompare(a.publishedAt ?? a.createdAt);
+}
+
 export async function getAllBlogs(): Promise<Blog[]> {
-  const snap = await adminDb
-    .collection("blogs")
-    .orderBy("createdAt", "desc")
-    .get();
-  return snap.docs.map((d) => docToPost(d.id, d.data()));
+  const snap = await getAdminDb().collection("blogs").get();
+  return snap.docs.map((d) => docToPost(d.id, d.data())).sort(byDateDesc);
 }
 
 export async function getPublishedBlogs(): Promise<Blog[]> {
-  const snap = await adminDb
-    .collection("blogs")
-    .where("published", "==", true)
-    .orderBy("createdAt", "desc")
-    .get();
-  return snap.docs.map((d) => docToPost(d.id, d.data()));
+  if (!isFirebaseAdminConfigured()) return [];
+  const snap = await getAdminDb().collection("blogs").where("published", "==", true).get();
+  return snap.docs.map((d) => docToPost(d.id, d.data())).sort(byDateDesc);
 }
 
 export async function getBlogBySlug(slug: string): Promise<Blog | null> {
-  const snap = await adminDb
+  if (!isFirebaseAdminConfigured()) return null;
+  const snap = await getAdminDb()
     .collection("blogs")
     .where("slug", "==", slug)
     .where("published", "==", true)
@@ -56,7 +56,12 @@ export async function getBlogBySlug(slug: string): Promise<Blog | null> {
 }
 
 export async function getBlogById(id: string): Promise<Blog | null> {
-  const doc = await adminDb.collection("blogs").doc(id).get();
+  const doc = await getAdminDb().collection("blogs").doc(id).get();
   if (!doc.exists) return null;
   return docToPost(doc.id, doc.data()!);
+}
+
+export async function isSlugTaken(slug: string, exceptId?: string): Promise<boolean> {
+  const snap = await getAdminDb().collection("blogs").where("slug", "==", slug).limit(2).get();
+  return snap.docs.some((d) => d.id !== exceptId);
 }

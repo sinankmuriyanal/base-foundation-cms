@@ -6,10 +6,9 @@ import { Trash2 } from "lucide-react";
 interface Props {
   blogId: string;
   blogTitle: string;
-  redirectAfterDelete?: string;
 }
 
-export default function BlogActions({ blogId, blogTitle, redirectAfterDelete }: Props) {
+export default function BlogActions({ blogId, blogTitle }: Props) {
   const router = useRouter();
 
   async function handleDelete() {

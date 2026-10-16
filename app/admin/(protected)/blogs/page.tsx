@@ -53,7 +53,7 @@ export default async function AdminBlogsPage() {
                   >
                     <Pencil size={15} />
                   </Link>
-                  <BlogActions blogId={blog.id} blogTitle={blog.title} redirectAfterDelete="/admin/blogs" />
+                  <BlogActions blogId={blog.id} blogTitle={blog.title} />
                 </div>
               </div>
             ))}

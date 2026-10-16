@@ -39,7 +39,7 @@ export default function AboutPage() {
           <p className="text-lg text-slate-600 leading-relaxed max-w-2xl">
             Base Foundation is a nonprofit working to close the educational and career opportunity gap
             for marginalized students across rural West Bengal, India. We believe that geography and
-            economic circumstance should never determine a student's ceiling.
+            economic circumstance should never determine a student&rsquo;s ceiling.
           </p>
         </div>
 
@@ -81,8 +81,8 @@ export default function AboutPage() {
         {/* Quote */}
         <blockquote className="border-l-4 border-accent pl-8 py-4">
           <p className="font-display text-2xl text-ink leading-snug">
-            "Dreaming is your responsibility,<br />
-            but helping you realize that dream is ours."
+            &ldquo;Dreaming is your responsibility,<br />
+            but helping you realize that dream is ours.&rdquo;
           </p>
           <footer className="mt-4 text-sm text-slate-400">— Base Foundation</footer>
         </blockquote>

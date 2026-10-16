@@ -5,8 +5,9 @@ import AdminNav from "@/components/AdminNav";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditBlogPage({ params }: { params: { id: string } }) {
-  const blog = await getBlogById(params.id);
+export default async function EditBlogPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const blog = await getBlogById(id);
   if (!blog) notFound();
 
   return (
