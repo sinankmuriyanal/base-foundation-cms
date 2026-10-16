@@ -27,6 +27,8 @@ export default function BlogActions({ blogId, blogTitle }: Props) {
       onClick={handleDelete}
       className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition"
       title="Delete"
+      aria-label={`Delete "${blogTitle}"`}
+      type="button"
     >
       <Trash2 size={15} />
     </button>

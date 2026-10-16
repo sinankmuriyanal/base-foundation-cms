@@ -54,7 +54,7 @@ npm run test:e2e    # Playwright — needs `npm run build` first; starts `next s
 
 ### Admin
 - `/admin/login` — signs in with the Firebase client SDK, POSTs the ID token to `/api/auth`, then signs the client out.
-- `/admin/(protected)/*` — dashboard, blogs (list/new/[id]), gallery. `layout.tsx` verifies the session server-side.
+- `/admin/(protected)/*` — dashboard, blogs (list/new/[id]), gallery. `layout.tsx` verifies the session server-side and wraps pages in `components/admin/AdminShell.tsx` (fixed left sidebar on desktop, top bar + drawer on mobile). Pages use `AdminPageHeader`; the posts list is `components/admin/BlogTable.tsx` (thumbnails, status tabs, search, category filter).
 - `proxy.ts` — optimistic redirect to login when the cookie is missing (not a security boundary).
 
 ### API (all admin routes go through `requireAdmin` in `lib/admin-api.ts`: 401 no/invalid session, 403 no admin claim)
@@ -137,3 +137,4 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 - **2026-05-18:** Initial build — Next.js 14 CMS with Firebase + Cloudinary, public site + admin panel, migration scripts.
 - **2026-10-16:** Upgraded to Next 16/React 19/Tiptap 3 (the Next 14 build had been failing on `next.config.ts`). Replaced raw-ID-token cookie with revocable session cookies gated on an admin claim, added a server-side admin gate, signed Cloudinary uploads, input validation and HTML sanitizing, and fixed the gallery multi-upload and editor bugs. Ported the real old-site content (programmes, join, donate, about, contact) and removed placeholder contact details and unverified stats. Added legacy redirects, sitemap and robots, rewrote the migration scripts (proper parsing, per-post images, idempotent seeding), and added Vitest + Playwright suites.
 - **2026-10-16 (later):** Ran the migration against the live Firebase + Cloudinary projects (23 posts, 66 gallery images), granted the admin claim, and deployed Firestore rules. Made gallery photos keyboard-accessible buttons with a labelled, Escape-closable lightbox, and hid empty category filters. The full suite passes with real data (24 unit + 34 e2e), plus a live admin round-trip.
+- **2026-10-16 (admin UI):** Redesigned the admin as a sidebar CMS shell, with a dark green nav, gold active marker, signed-in user and logout. The posts list is now a table with featured-image thumbnails, status tabs with counts, search and a category filter, switching to cards on mobile. The dashboard shows stat cards, recent posts with thumbnails, quick actions and a missing-captions prompt. Replaced `AdminNav`.
