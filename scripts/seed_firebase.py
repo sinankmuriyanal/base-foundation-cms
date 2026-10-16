@@ -1,94 +1,82 @@
 """
-Phase 1c: Seed Firestore with blog and gallery data.
+Step 3: Seed Firestore with the migrated blogs, gallery and site settings.
 
-Reads:  scripts/blogs_seeded.json
-        scripts/gallery_seeded.json
+Reads:  scripts/blogs_seeded.json, scripts/gallery_seeded.json   (from upload_images.py)
+        scripts/serviceAccountKey.json  (Firebase Console -> Project settings -> Service accounts)
 
-Setup before running:
-  Place your Firebase service account key at: scripts/serviceAccountKey.json
-  (Download from Firebase Console → Project Settings → Service Accounts)
+Safe to re-run: documents use fixed IDs (legacy-post-N, legacy-gallery-NNN) and existing ones
+are skipped, so edits made in the admin panel are never overwritten. Pass --force to overwrite.
 
 Run from project root:
-  python scripts/seed_firebase.py
+  python scripts/seed_firebase.py [--force]
 """
 
+from __future__ import annotations
+
+import argparse
 import json
+from pathlib import Path
+
 import firebase_admin
 from firebase_admin import credentials, firestore
-from google.cloud.firestore_v1 import SERVER_TIMESTAMP
 
-SERVICE_ACCOUNT_PATH = "scripts/serviceAccountKey.json"
-
-
-def init_firebase():
-    cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
-    firebase_admin.initialize_app(cred)
-    return firestore.client()
+ROOT = Path(__file__).resolve().parent.parent
+SERVICE_ACCOUNT_PATH = ROOT / "scripts" / "serviceAccountKey.json"
 
 
-def seed_blogs(db, blogs: list[dict]):
-    print(f"Seeding {len(blogs)} blogs...")
-    collection = db.collection("blogs")
-    for blog in blogs:
-        doc_data = {
-            "title": blog["title"],
-            "slug": blog["slug"],
-            "category": blog["category"],
-            "content": blog["content"],
-            "featuredImage": blog.get("featuredImage"),
-            "cloudinaryPublicId": blog.get("cloudinaryPublicId"),
-            "tags": blog.get("tags", []),
-            "author": blog.get("author"),
-            "publishedAt": blog.get("publishedAt"),
-            "published": blog.get("published", True),
-            "createdAt": SERVER_TIMESTAMP,
-            "updatedAt": SERVER_TIMESTAMP,
-        }
-        ref = collection.add(doc_data)
-        print(f"  [{blog['category']}] {blog['title'][:60]}")
-    print(f"  -> {len(blogs)} blog docs created.")
+def seed(collection, doc_id: str, data: dict, force: bool) -> bool:
+    ref = collection.document(doc_id)
+    if not force and ref.get().exists:
+        return False
+    ref.set({**data, "createdAt": firestore.SERVER_TIMESTAMP, **({"updatedAt": firestore.SERVER_TIMESTAMP} if "title" in data else {})})
+    return True
 
 
-def seed_gallery(db, images: list[dict]):
-    print(f"\nSeeding {len(images)} gallery images...")
-    collection = db.collection("gallery")
-    for img in images:
-        doc_data = {
-            "imageUrl": img["imageUrl"],
-            "cloudinaryPublicId": img["cloudinaryPublicId"],
-            "category": img["category"],
-            "caption": img.get("caption", ""),
-            "order": img.get("order", 0),
-            "createdAt": SERVER_TIMESTAMP,
-        }
-        collection.add(doc_data)
-    print(f"  -> {len(images)} gallery docs created.")
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--force", action="store_true", help="overwrite documents that already exist")
+    args = parser.parse_args()
 
+    firebase_admin.initialize_app(credentials.Certificate(str(SERVICE_ACCOUNT_PATH)))
+    db = firestore.client()
 
-def seed_settings(db):
-    print("\nSeeding settings...")
+    blogs = json.loads((ROOT / "scripts" / "blogs_seeded.json").read_text(encoding="utf-8"))
+    created = 0
+    for b in blogs:
+        created += seed(db.collection("blogs"), f"legacy-post-{b['postNumber']}", {
+            "title": b["title"],
+            "slug": b["slug"],
+            "category": b["category"],
+            "content": b["content"],
+            "featuredImage": b.get("featuredImage"),
+            "cloudinaryPublicId": b.get("cloudinaryPublicId"),
+            "tags": b.get("tags", []),
+            "author": b.get("author"),
+            "publishedAt": b.get("publishedAt"),
+            "published": b.get("published", True),
+        }, args.force)
+    print(f"blogs: {created} written, {len(blogs) - created} already existed")
+
+    gallery = json.loads((ROOT / "scripts" / "gallery_seeded.json").read_text(encoding="utf-8"))
+    created = 0
+    for g in gallery:
+        created += seed(db.collection("gallery"), f"legacy-gallery-{g['legacyOrder']:03d}", {
+            "imageUrl": g["imageUrl"],
+            "cloudinaryPublicId": g["cloudinaryPublicId"],
+            "category": g["category"],
+            "caption": g["caption"],
+            "order": g["order"],
+        }, args.force)
+    print(f"gallery: {created} written, {len(gallery) - created} already existed")
+
     db.collection("settings").document("site").set({
         "siteName": "Base Foundation",
-        "tagline": "Empowering marginalized students through education",
-        "contactEmail": "contact@basefoundation.org",
-        "updatedAt": SERVER_TIMESTAMP,
-    })
-    print("  -> settings/site created.")
-
-
-def main():
-    db = init_firebase()
-
-    with open("scripts/blogs_seeded.json", encoding="utf-8") as f:
-        blogs = json.load(f)
-    with open("scripts/gallery_seeded.json", encoding="utf-8") as f:
-        gallery = json.load(f)
-
-    seed_blogs(db, blogs)
-    seed_gallery(db, gallery)
-    seed_settings(db)
-
-    print("\nAll done! Check your Firestore console.")
+        "tagline": "Empowering Rural Lives, Building a Strong Foundation",
+        "contactEmail": "basefoundationwb@gmail.com",
+        "updatedAt": firestore.SERVER_TIMESTAMP,
+    }, merge=True)
+    print("settings/site updated")
+    print("\nNext: python scripts/set_admin_claim.py <admin email>")
 
 
 if __name__ == "__main__":

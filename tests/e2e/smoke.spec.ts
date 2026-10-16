@@ -91,5 +91,5 @@ test("legacy static-site URLs redirect permanently", async ({ request }) => {
   }
   const post = await request.get("/blog-post7.html", { maxRedirects: 0 });
   expect(post.status()).toBe(308);
-  expect(post.headers()["location"]).toMatch(/^\/blog/);
+  expect(post.headers()["location"]).toBe("/blog/first-milestone-achieved-successful-launch-of-the-map-bengal-test-exam-drive");
 });

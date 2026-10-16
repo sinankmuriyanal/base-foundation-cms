@@ -29,6 +29,7 @@ scripts/__pycache__/
 scripts/*.pyc
 scripts/blogs_raw.json
 scripts/blogs_seeded.json
+scripts/gallery_raw.json
 scripts/gallery_seeded.json
 serviceAccountKey.json
 

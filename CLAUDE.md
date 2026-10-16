@@ -1,18 +1,12 @@
 # Base Foundation CMS
 
-NGO website for Base Foundation (West Bengal, India) — rebuilt from a static HTML/CSS/JS site into a Next.js 14 CMS with a full admin panel.
+NGO website + CMS for Base Foundation (Bhimpur, Paikar, Birbhum, West Bengal). Replaces the static GitHub Pages site in `sinankmuriyanal/Base` (served at basefoundation.in).
 
----
-
-## Project Overview
-
-**Old site:** `sinankmuriyanal/Base` — 23 hardcoded blog-post HTML files, 71 gallery images in an `img/` folder. No CMS.
-
-**New site:** Next.js 14 App Router + TypeScript, Firebase Firestore (data), Firebase Auth (admin login), Cloudinary (images), Tiptap rich text editor. Design: Fraunces display serif + DM Sans, deep forest green + gold on warm cream.
-
-**GitHub:** https://github.com/sinankmuriyanal/base-foundation-cms
-
-**Local path:** `C:\Users\hp\OneDrive\Desktop\claude\Base Foundation`
+- **GitHub:** https://github.com/sinankmuriyanal/base-foundation-cms (branch `master`, commit directly — no PR workflow)
+- **Local path:** `C:\Users\WINDOWS 11 PRO\Desktop\sinan\Base`
+- **Push as `sinankmuriyanal`:** the default active gh account (`prikeralam`) is read-only here. Use
+  `gh auth switch -u sinankmuriyanal; git -c credential.helper= -c "credential.helper=!gh auth git-credential" push origin master; gh auth switch -u prikeralam`
+- No `Co-Authored-By` trailers (Vercel Hobby blocks deploys with them).
 
 ---
 
@@ -20,210 +14,121 @@ NGO website for Base Foundation (West Bengal, India) — rebuilt from a static H
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 14 App Router + TypeScript |
-| Styling | Tailwind CSS — Fraunces (display) + DM Sans (body) |
-| Database | Firebase Firestore |
-| Auth | Firebase Auth — email/password, single admin user |
-| Images | Cloudinary (server delete via `cloudinary` v2, uploads via `next-cloudinary`) |
-| Rich text | Tiptap editor (StarterKit + Image + Link) |
+| Framework | Next.js 16 App Router + React 19 + TypeScript (Turbopack) |
+| Styling | Tailwind CSS 3.4 — Fraunces (display) + DM Sans (body); brand green `#1a6b3c`, gold `#f5a623`, cream `#fdf8f0` |
+| Database | Firebase Firestore (Admin SDK only — the browser never reads/writes Firestore) |
+| Auth | Firebase Auth email/password → server **session cookie**; `admin: true` custom claim required |
+| Images | Cloudinary — signed uploads via `next-cloudinary` widget, server deletes via `cloudinary` v2 |
+| Rich text | Tiptap 3 (StarterKit incl. Link + Image); HTML sanitized server-side with `sanitize-html` |
+| Forms | Formspree (contact + join), endpoints via env |
+| Tests | Vitest (unit, `tests/unit`) + Playwright (e2e smoke, `tests/e2e`, desktop + mobile) |
 | Hosting | Vercel (planned) |
-
----
 
 ## Commands
 
 ```bash
-npm run dev       # localhost:3000
-npm run build     # production build
-npm run lint      # ESLint
-npx tsc --noEmit  # TypeScript check (currently passing: 0 errors)
+npm run dev         # localhost:3000
+npm run build       # production build (works without credentials: public data pages render empty)
+npm run lint        # ESLint 10 flat config
+npm run typecheck   # tsc --noEmit
+npm test            # Vitest unit tests
+npm run test:e2e    # Playwright — needs `npm run build` first; starts `next start` on :3100
 ```
 
 ---
 
 ## Route Map
 
-### Public (wrapped in Navbar + Footer via `app/(public)/layout.tsx`)
-| URL | File | Notes |
-|---|---|---|
-| `/` | `app/page.tsx` | Home — hero, stats, latest 3 posts, programme links |
-| `/blog` | `app/(public)/blog/page.tsx` | Blog listing — category filter + search (client component) |
-| `/blog/[slug]` | `app/(public)/blog/[slug]/page.tsx` | Blog detail — SSR with featured image hero |
-| `/gallery` | `app/(public)/gallery/page.tsx` | Masonry grid, 4-category filter, lightbox |
-| `/about` | `app/(public)/about/page.tsx` | Static — origin story, values |
-| `/contact` | `app/(public)/contact/page.tsx` | Formspree form (replace action URL with real endpoint) |
+### Public (`app/(public)/layout.tsx` adds Navbar + Footer; `app/page.tsx` adds them itself)
+| URL | Notes |
+|---|---|
+| `/` | Hero, live stats (post count, programme count), latest 3 posts, programme links |
+| `/programmes`, `/programmes/[slug]` | Static data in `lib/programmes.ts` (copy from old site); detail shows related posts by `blogCategory` |
+| `/blog`, `/blog/[slug]` | Firestore; category filter via `?category=` + client search |
+| `/gallery` | Masonry + category filter + lightbox |
+| `/about` | Real mission, vision, team |
+| `/join` | Volunteership / Internship forms (`NEXT_PUBLIC_FORMSPREE_JOIN`) |
+| `/donate` | Reads `DONATION` in `lib/site.ts` — shows contact fallback until bank/UPI details are filled in |
+| `/contact` | Formspree (`NEXT_PUBLIC_FORMSPREE_CONTACT`) + real contact details |
+| `/sitemap.xml`, `/robots.txt` | `app/sitemap.ts`, `app/robots.ts` |
 
-### Admin (auth-gated via `app/admin/layout.tsx` → `AdminGuard` component)
-| URL | File | Notes |
-|---|---|---|
-| `/admin/login` | `app/admin/login/page.tsx` | Firebase email/password login |
-| `/admin/dashboard` | `app/admin/dashboard/page.tsx` | Blog count, gallery count, recent posts table |
-| `/admin/blogs` | `app/admin/blogs/page.tsx` | All posts — published/draft badge, edit/delete |
-| `/admin/blogs/new` | `app/admin/blogs/new/page.tsx` | Create post (Tiptap + Cloudinary upload) |
-| `/admin/blogs/[id]` | `app/admin/blogs/[id]/page.tsx` | Edit post |
-| `/admin/gallery` | `app/admin/gallery/page.tsx` | Upload images, edit category/caption, delete |
+### Admin
+- `/admin/login` — signs in with the Firebase client SDK, POSTs the ID token to `/api/auth`, then signs the client out.
+- `/admin/(protected)/*` — dashboard, blogs (list/new/[id]), gallery. `layout.tsx` verifies the session server-side.
+- `proxy.ts` — optimistic redirect to login when the cookie is missing (not a security boundary).
 
-### API Routes (all auth-protected via Firebase ID token cookie)
+### API (all admin routes go through `requireAdmin` in `lib/admin-api.ts`: 401 no/invalid session, 403 no admin claim)
 | Method | URL | Purpose |
 |---|---|---|
-| POST | `/api/auth` | Set session cookie from Firebase ID token |
-| DELETE | `/api/auth` | Clear session cookie (logout) |
-| POST | `/api/admin/blogs` | Create blog |
-| PUT | `/api/admin/blogs/[id]` | Update blog |
-| DELETE | `/api/admin/blogs/[id]` | Delete blog + Cloudinary image |
-| POST | `/api/admin/gallery` | Add gallery image |
-| PATCH | `/api/admin/gallery/[id]` | Update category/caption |
-| DELETE | `/api/admin/gallery/[id]` | Delete gallery image + Cloudinary asset |
+| POST / DELETE | `/api/auth` | Create session cookie (admin + recent sign-in only) / revoke sessions + clear cookie |
+| POST | `/api/admin/blogs` | Create (409 on duplicate slug) |
+| PUT / DELETE | `/api/admin/blogs/[id]` | Update (keeps original `publishedAt`, deletes replaced Cloudinary image) / delete + image |
+| POST | `/api/admin/gallery` | Add image (appended after highest `order`) |
+| PATCH / DELETE | `/api/admin/gallery/[id]` | Update category/caption/order / delete + Cloudinary asset |
+| POST | `/api/admin/cloudinary-sign` | Signs upload-widget params |
 
----
+Mutations call `revalidatePath` so ISR pages update immediately.
 
 ## Key Files
 
 | File | Purpose |
 |---|---|
-| `lib/types.ts` | `Blog`, `GalleryImage`, `BLOG_CATEGORIES`, `GALLERY_CATEGORIES` |
-| `lib/firebase.ts` | Firebase client SDK init (browser) |
-| `lib/firebase-admin.ts` | Firebase Admin SDK init (server-side SSR + API routes) |
-| `lib/cloudinary.ts` | Cloudinary server config + `deleteCloudinaryImage()` |
-| `lib/auth.ts` | `getAdminSession()` — verifies ID token from cookie |
-| `lib/blogs.ts` | `getAllBlogs()`, `getPublishedBlogs()`, `getBlogBySlug()`, `getBlogById()` |
-| `lib/gallery.ts` | `getAllGalleryImages()` |
-| `lib/utils.ts` | `cn()`, `formatDate()`, `slugify()` |
-| `components/AdminGuard.tsx` | Client: checks Firebase auth state, redirects to `/admin/login` |
-| `components/AdminNav.tsx` | Admin top bar with logout |
-| `components/BlogEditor.tsx` | Create/edit form — title, slug, category, Tiptap, Cloudinary upload, tags, publish toggle |
-| `components/RichTextEditor.tsx` | Tiptap wrapper with toolbar |
-| `components/BlogListClient.tsx` | Client: blog listing with category filter + search |
-| `components/GalleryGrid.tsx` | Client: masonry gallery with category filter + lightbox |
-| `components/GalleryManager.tsx` | Client: admin gallery grid with inline edit + bulk upload |
-| `firestore.rules` | Security rules — public read for published blogs + gallery; auth required to write |
-
----
+| `lib/site.ts` | Contact details, nav links, donation details, Formspree endpoints — single source for footer/contact/donate |
+| `lib/programmes.ts` | Programme content |
+| `lib/legacy-redirects.ts` | Old static URLs → new routes; `LEGACY_BLOG_REDIRECTS` is **generated** by `scripts/extract_content.py` |
+| `lib/validation.ts` | Request body parsing/validation + HTML sanitizing |
+| `lib/auth.ts` | `checkAdminSession()` / `getAdminSession()` (session cookie + admin claim) |
+| `lib/firebase-admin.ts` | Lazy Admin SDK init; `isFirebaseAdminConfigured()` lets credential-less builds succeed |
+| `lib/blogs.ts`, `lib/gallery.ts` | Firestore reads (blogs sorted in memory — no composite index needed) |
+| `firestore.rules` + `firebase.json` | Rules: public read of published blogs/gallery/settings; writes only with admin claim |
 
 ## Firestore Schema
 
-### `blogs` collection
-```
-title: string
-slug: string          ← auto-generated from title via slugify()
-category: string      ← one of BLOG_CATEGORIES
-content: string       ← HTML from Tiptap
-featuredImage: string | null    ← Cloudinary secure_url
-cloudinaryPublicId: string | null
-tags: string[]
-author: string | null
-publishedAt: string | null      ← ISO date string
-published: boolean
-createdAt: Timestamp
-updatedAt: Timestamp
-```
-
-### `gallery` collection
-```
-imageUrl: string              ← Cloudinary secure_url
-cloudinaryPublicId: string
-category: string              ← one of GALLERY_CATEGORIES
-caption: string
-order: number
-createdAt: Timestamp
-```
-
-### `settings/site` document
-```
-siteName: string
-tagline: string
-contactEmail: string
-updatedAt: Timestamp
-```
-
----
+- `blogs/{id}`: title, slug, category (one of `BLOG_CATEGORIES`), content (sanitized HTML), featuredImage, cloudinaryPublicId, tags[], author, publishedAt (ISO string), published, createdAt, updatedAt. Migrated docs use IDs `legacy-post-N`.
+- `gallery/{id}`: imageUrl, cloudinaryPublicId, category (one of `GALLERY_CATEGORIES`), caption, order, createdAt. Migrated: `legacy-gallery-NNN`.
+- `settings/site`: siteName, tagline, contactEmail, updatedAt.
 
 ## Environment Variables
 
-Copy `.env.local.example` → `.env.local` and fill in:
-
-```bash
-# Firebase client (safe for browser)
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-
-# Firebase Admin (server only — NEVER expose to browser)
-FIREBASE_SERVICE_ACCOUNT=    ← full JSON string of serviceAccountKey.json
-
-# Cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-
-# Session cookie
-AUTH_COOKIE_NAME=base_admin_session
-AUTH_COOKIE_SECRET=          ← random 32-char string
-```
+See `.env.local.example`: Firebase client config (`NEXT_PUBLIC_FIREBASE_*`), `FIREBASE_SERVICE_ACCOUNT` (full JSON string, server only), `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_API_KEY`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `NEXT_PUBLIC_FORMSPREE_CONTACT`, `NEXT_PUBLIC_FORMSPREE_JOIN`, optional `AUTH_COOKIE_NAME`.
 
 ---
 
-## Data Migration Scripts (one-time)
-
-All scripts in `scripts/`. Run from project root.
+## Content Migration (scripts/, Python venv)
 
 ```bash
-pip install -r scripts/requirements.txt
-
-# Step 1: Extract all 23 blog posts from old GitHub repo
-python scripts/extract_blogs.py
-# → writes scripts/blogs_raw.json
-
-# Step 2: Upload images to Cloudinary
-# Set env vars first: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
-python scripts/upload_images.py
-# → writes scripts/blogs_seeded.json + scripts/gallery_seeded.json
-
-# Step 3: Seed Firestore
-# Place Firebase service account key at scripts/serviceAccountKey.json first
-python scripts/seed_firebase.py
-# → writes 23 blog docs + 71 gallery docs + settings/site doc to Firestore
+python -m venv .venv && .venv\Scripts\pip install -r scripts/requirements.txt
+.venv\Scripts\python scripts/extract_content.py   # no creds; writes blogs_raw.json, gallery_raw.json, regenerates lib/legacy-redirects.ts
+.venv\Scripts\python scripts/upload_images.py     # needs Cloudinary keys in .env.local
+.venv\Scripts\python scripts/seed_firebase.py     # needs scripts/serviceAccountKey.json; idempotent, --force to overwrite
+.venv\Scripts\python scripts/set_admin_claim.py <admin email>
+firebase deploy --only firestore:rules
 ```
+
+Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't listed there; set by content in `CATEGORY_OVERRIDES`). The old pages have no dates, so `publishedAt` = first commit of each `blog-postN.html` in the old repo (+N seconds to keep order) — approximate; correct in admin if needed. Template tags (#Donate, #Poor…) and the placeholder caption "He Need Your Protection" are dropped.
 
 ---
 
-## Current Session Status (2026-05-18)
+## Status (2026-10-16)
 
-### Completed ✓
-- [x] GitHub repo created: `sinankmuriyanal/base-foundation-cms`
-- [x] Next.js 14 project scaffolded — TypeScript, Tailwind, all deps installed
-- [x] Full public website: Home, Blog listing, Blog detail, Gallery, About, Contact
-- [x] Admin panel: Login, Dashboard, Blog CRUD, Gallery CRUD
-- [x] All API routes with Firebase Auth token verification
-- [x] Firebase security rules written (`firestore.rules`)
-- [x] Python migration scripts: extract_blogs.py, upload_images.py, seed_firebase.py
-- [x] TypeScript: 0 errors (`npx tsc --noEmit`)
-- [x] Initial commit pushed to GitHub
+### Done
+- Next 16 / React 19 upgrade; build, lint, typecheck, 24 unit + 32 e2e tests passing
+- Auth hardening (session cookies, admin claim, server gate, signed uploads, sanitized HTML, validation)
+- Real content ported: programmes (8), join, donate, about, contact; placeholder email/claims removed
+- Legacy URL redirects (all 23 posts mapped), sitemap, robots
+- Migration scripts rewritten; extraction verified (23 posts, 67 gallery images)
 
-### Pending — Next Session
-- [ ] **Firebase setup** (manual, user): Create Firebase project → enable Firestore + Auth → create admin user → download service account key
-- [ ] **Cloudinary setup** (manual, user): Create account → create upload presets `blog_images` and `gallery_images`
-- [ ] **Fill `.env.local`** from `.env.local.example`
-- [ ] **Run migration scripts** in order: extract_blogs → upload_images → seed_firebase
-- [ ] **Test locally** `npm run dev` — verify blog listing, gallery, admin login work end-to-end
-- [ ] **Update contact form** — replace Formspree action URL in `app/(public)/contact/page.tsx` with real endpoint
-- [ ] **Deploy to Vercel** — connect repo, add all env vars from `.env.local`
-- [ ] **Apply Firestore security rules** — paste `firestore.rules` into Firebase Console → Firestore → Rules
-- [ ] **Test admin panel** — create post, upload gallery image, delete, publish toggle
-- [ ] **Verify Cloudinary cleanup** — delete a blog post and confirm image is removed from Cloudinary
-
-### Known Items to Fix in Next Session
-- `app/(public)/contact/page.tsx` line 15: Replace `https://formspree.io/f/placeholder` with actual Formspree endpoint (free at formspree.io)
-- After running migration, review blog content quality — the HTML extracted from old site may have extra nav/footer markup inside `content` field; clean up via admin editor if needed
-- Gallery images in the old site have identical captions ("He Need Your Protection") — update captions via admin panel after migration
+### Pending (needs the owner)
+- [ ] Create Firebase project (Firestore asia-south1, email/password auth, disable sign-up) + admin user + service account key
+- [ ] Create Cloudinary account; fill `.env.local`
+- [ ] Run upload → seed → set_admin_claim; deploy rules; full admin end-to-end check
+- [ ] Formspree endpoints for contact + join
+- [ ] Donation bank/UPI details → `DONATION` in `lib/site.ts`
+- [ ] Vercel deploy + env vars; then DNS cutover of basefoundation.in, remove `CNAME`/Pages from the old repo, archive `sinankmuriyanal/Base` (confirm first)
 
 ---
 
 ## Changelog
 
-- **2026-05-18:** Initial build — Next.js 14 CMS with Firebase + Cloudinary, public site + full admin panel, Python migration scripts for 23 blogs + 71 gallery images. TypeScript passing. Pushed to GitHub.
-
-- [2026-05-18] docs: update CLAUDE.md with full project state and pending tasks for next session
+- **2026-05-18:** Initial build — Next.js 14 CMS with Firebase + Cloudinary, public site + admin panel, migration scripts.
+- **2026-10-16:** Upgraded to Next 16/React 19/Tiptap 3 (the Next 14 build had been failing on `next.config.ts`). Replaced raw-ID-token cookie with revocable session cookies gated on an admin claim, added a server-side admin gate, signed Cloudinary uploads, input validation and HTML sanitizing, and fixed the gallery multi-upload and editor bugs. Ported the real old-site content (programmes, join, donate, about, contact) and removed placeholder contact details and unverified stats. Added legacy redirects, sitemap and robots, rewrote the migration scripts (proper parsing, per-post images, idempotent seeding), and added Vitest + Playwright suites.
