@@ -15,6 +15,7 @@ function docToPost(id: string, data: DocumentData): Blog {
     slug: data.slug ?? id,
     category: data.category ?? "General",
     content: data.content ?? "",
+    excerpt: data.excerpt ?? "",
     featuredImage: data.featuredImage ?? null,
     cloudinaryPublicId: data.cloudinaryPublicId ?? null,
     tags: data.tags ?? [],

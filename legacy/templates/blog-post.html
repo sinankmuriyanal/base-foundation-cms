@@ -1,0 +1,91 @@
+<main class="main">
+  <section class="promo-primary">
+    <picture>
+      <source srcset="/legacy/img/faq.jpg" media="(min-width: 992px)" />
+      <img class="img--bg" src="/legacy/img/faq.jpg" alt="" />
+    </picture>
+    <div class="promo-primary__description"><span></span></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-auto">
+          <div class="align-container">
+            <div class="align-container__item">
+              <span class="promo-primary__pre-title"></span>
+              <h1 class="promo-primary__title">
+                <span>Blog</span> <span>Post</span>
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section blog-post">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 col-lg-9">
+          <div class="blog-post__top">
+{{{image}}}
+            <div class="blog-post__description">
+              <div class="row">
+                <div class="col-6">
+                  <span class="blog-post__name">{{author}}</span>
+                </div>
+                <div class="col-6 text-right">
+                  <span class="blog-post__date">{{date}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h6 class="blog-post__title">{{title}}</h6>
+          <div class="blog-post__content">
+{{{content}}}
+          </div>
+          <div class="blog-post__details">
+            <div class="row align-items-center">
+              <div class="col-lg-3 text-center text-lg-left">
+                <span class="blog-post__name"> </span>
+              </div>
+              <div class="col-lg-6 text-center">
+                <div class="tags">{{{tags}}}</div>
+              </div>
+              <div class="col-lg-3">
+                <ul class="blog-post__socials">
+                  <li>
+                    <a href="{{share_facebook}}" target="_blank" rel="noopener" aria-label="Share on Facebook"
+                      ><i class="fa fa-facebook" aria-hidden="true"></i
+                    ></a>
+                  </li>
+                  <li>
+                    <a href="{{share_twitter}}" target="_blank" rel="noopener" aria-label="Share on Twitter"
+                      ><i class="fa fa-twitter" aria-hidden="true"></i
+                    ></a>
+                  </li>
+                  <li>
+                    <a href="{{share_whatsapp}}" target="_blank" rel="noopener" aria-label="Share on WhatsApp"
+                      ><i class="fa fa-whatsapp" aria-hidden="true"></i
+                    ></a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+          <div class="blog-post__category-holder">
+            <h6 class="blog-post__title">Category</h6>
+            <ul class="blog-post__category">
+{{{categories}}}
+            </ul>
+          </div>
+          <h6 class="blog-post__title">Recent Posts</h6>
+          <div class="recent-posts">
+{{{recent}}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

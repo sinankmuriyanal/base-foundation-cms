@@ -1,0 +1,81 @@
+<main class="main">
+	<section class="promo-primary">
+		<picture>
+			<source srcset="/legacy/img/promo_2-2.jpg" media="(min-width: 992px)"/><img class="img--bg" src="/legacy/img/promo_2-2.jpg" alt=""/>
+		</picture>
+		<div class="promo-primary__description"> <span></span></div>
+		<div class="container">
+			<div class="row">
+				<div class="col-auto">
+					<div class="align-container">
+						<div class="align-container__item"><span class="promo-primary__pre-title"></span>
+							<h1 class="promo-primary__title"><span>Join</span> <span>with us</span></h1>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="section">
+		<div class="container">
+			<div class="row">
+				<div class="col-xl-10 offset-xl-1 text-center">
+					<div class="heading heading--primary heading--center"><span class="heading__pre-title">BASE Volunteers</span>
+						<h2 class="heading__title"><span>Together, let's</span> <span>make a difference</span></h2>
+					</div>
+					<p>Empowering rural communities through education, upliftment and a diverse range of activities takes many hands. Volunteers and interns are at the heart of every BASE programme.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="section contacts no-padding-top">
+		<div class="container">
+			<div class="row offset-margin">
+				<div class="col-lg-6" id="volunteership">
+					<form class="form message-form" {{{form_attrs}}}>
+						<input type="hidden" name="track" value="Volunteership"/>
+						<input type="hidden" name="_subject" value="New Volunteership application"/>
+						<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true"/>
+						<h6 class="form__title">Volunteership</h6><span class="form__text">Give time to our classrooms, school visits, training days and community events. {{form_note}}</span>
+						<div class="row">
+							<div class="col-12"><input class="form__field" type="text" name="name" placeholder="Full Name *" required="required" autocomplete="name"/></div>
+							<div class="col-lg-6"><input class="form__field" type="email" name="email" placeholder="Email *" required="required" autocomplete="email"/></div>
+							<div class="col-lg-6"><input class="form__field" type="tel" name="phone" placeholder="Phone *" required="required" autocomplete="tel"/></div>
+							<div class="col-12">
+								<select class="form__field" name="interest" aria-label="How would you like to help?">
+									<option>Teaching</option>
+									<option>Teacher training</option>
+									<option>School visits</option>
+									<option>Events &amp; community work</option>
+									<option>Media &amp; documentation</option>
+									<option>Other</option>
+								</select>
+							</div>
+							<div class="col-12"><textarea class="form__message form__field" name="message" placeholder="About you"></textarea></div>
+							<div class="col-12"><button class="form__submit" type="submit">Apply as Volunteer</button></div>
+						</div>
+					</form>
+				</div>
+				<div class="col-lg-6" id="internship">
+					<form class="form message-form" {{{form_attrs}}}>
+						<input type="hidden" name="track" value="Internship"/>
+						<input type="hidden" name="_subject" value="New Internship application"/>
+						<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true"/>
+						<h6 class="form__title">Internship</h6><span class="form__text">Students can work alongside our team on fieldwork, documentation, teaching and outreach. {{form_note}}</span>
+						<div class="row">
+							<div class="col-12"><input class="form__field" type="text" name="name" placeholder="Full Name *" required="required" autocomplete="name"/></div>
+							<div class="col-lg-6"><input class="form__field" type="email" name="email" placeholder="Email *" required="required" autocomplete="email"/></div>
+							<div class="col-lg-6"><input class="form__field" type="tel" name="phone" placeholder="Phone *" required="required" autocomplete="tel"/></div>
+							<div class="col-lg-6"><input class="form__field" type="text" name="institution" placeholder="College / Institution *" required="required"/></div>
+							<div class="col-lg-6"><input class="form__field" type="text" name="course" placeholder="Course &amp; Year *" required="required"/></div>
+							<div class="col-12"><textarea class="form__message form__field" name="message" placeholder="What would you like to work on?"></textarea></div>
+							<div class="col-12"><button class="form__submit" type="submit">Apply for Internship</button></div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>

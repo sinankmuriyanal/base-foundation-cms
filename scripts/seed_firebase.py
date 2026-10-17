@@ -48,6 +48,7 @@ def main() -> None:
             "slug": b["slug"],
             "category": b["category"],
             "content": b["content"],
+            "excerpt": b.get("excerpt", ""),
             "featuredImage": b.get("featuredImage"),
             "cloudinaryPublicId": b.get("cloudinaryPublicId"),
             "tags": b.get("tags", []),

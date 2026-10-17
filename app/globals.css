@@ -45,24 +45,3 @@
 .prose-blog ul { @apply list-disc pl-5 mb-4 space-y-1; }
 .prose-blog ol { @apply list-decimal pl-5 mb-4 space-y-1; }
 .prose-blog blockquote { @apply border-l-4 border-brand pl-4 italic text-slate-600 my-4; }
-
-/* Staggered page-load reveal; set --d inline for delay */
-@keyframes rise {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
-}
-.rise {
-  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: var(--d, 0ms);
-}
-@media (prefers-reduced-motion: reduce) {
-  .rise { animation: none; }
-}
-
-/* Paper grain used behind ledger sections */
-.paper-grid {
-  background-image:
-    linear-gradient(to right, rgb(26 107 60 / 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(26 107 60 / 0.05) 1px, transparent 1px);
-  background-size: 48px 48px;
-}

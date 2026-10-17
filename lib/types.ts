@@ -4,6 +4,8 @@ export interface Blog {
   slug: string;
   category: string;
   content: string;
+  /** Short summary for listing cards; empty means derive from content. */
+  excerpt: string;
   featuredImage: string | null;
   cloudinaryPublicId: string | null;
   tags: string[];

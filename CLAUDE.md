@@ -15,7 +15,8 @@ NGO website + CMS for Base Foundation (Bhimpur, Paikar, Birbhum, West Bengal). R
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 16 App Router + React 19 + TypeScript (Turbopack) |
-| Styling | Tailwind CSS 3.4 — Fraunces (display) + DM Sans (body); brand green `#1a6b3c`, gold `#f5a623`, cream `#fdf8f0` |
+| Public site UI | The **original basefoundation.in template**: `public/legacy/` (styles.min.css, jQuery 2.2.4 + libs.min.js + common.min.js, fonts, layout images) and HTML fragments in `legacy/templates/` rendered server-side with CMS data |
+| Admin UI | Tailwind CSS 3.4 — Fraunces + DM Sans; brand green `#1a6b3c`, gold `#f5a623` |
 | Database | Firebase Firestore (Admin SDK only — the browser never reads/writes Firestore) |
 | Auth | Firebase Auth email/password → server **session cookie**; `admin: true` custom claim required |
 | Images | Cloudinary — signed uploads via `next-cloudinary` widget, server deletes via `cloudinary` v2 |
@@ -39,20 +40,24 @@ npm run test:e2e    # Playwright — needs `npm run build` first; starts `next s
 
 ## Route Map
 
-### Public (`app/(public)/layout.tsx` adds Navbar + Footer; `app/page.tsx` adds them itself)
-| URL | Notes |
-|---|---|
-| `/` | Hero, live stats (post count, programme count), latest 3 posts, programme links |
-| `/programmes`, `/programmes/[slug]` | Static data in `lib/programmes.ts` (copy from old site); detail shows related posts by `blogCategory` |
-| `/blog`, `/blog/[slug]` | Firestore; category filter via `?category=` + client search |
-| `/gallery` | Masonry + category filter + lightbox |
-| `/about` | Real mission, vision, team |
-| `/join` | Volunteership / Internship forms (`NEXT_PUBLIC_FORMSPREE_JOIN`) |
-| `/donate` | Reads `DONATION` in `lib/site.ts` — shows contact fallback until bank/UPI details are filled in |
-| `/contact` | Formspree (`NEXT_PUBLIC_FORMSPREE_CONTACT`) + real contact details |
-| `/sitemap.xml`, `/robots.txt` | `app/sitemap.ts`, `app/robots.ts` |
+### Public — `app/(site)/` (own root layout: legacy CSS + `public/legacy/js/boot.js`, no Tailwind)
+Every page wraps its body in `components/legacy/SiteShell.tsx` (template header/footer, `active` menu key) and renders a template from `legacy/templates/` via `renderTemplate()` (`lib/legacy/template.ts`: `{{x}}` escaped, `{{{x}}}` raw HTML). Card/banner markup for CMS data lives in `lib/legacy/partials.ts`. Links are plain `<a>` (full page loads) so the jQuery plugins re-initialise on every page.
+
+| URL | Template | Data |
+|---|---|---|
+| `/` | `home` | latest 5 posts in the original card column pattern |
+| `/blog` (`?category=`) | `blog` | all published posts (excerpt field, else auto) |
+| `/blog/[slug]` | `blog-post` | post, real categories + 3 recent posts, share links |
+| `/gallery` | `gallery` | Isotope filter + Fancybox; migrated photos keep the old wide tiles (`gallery-wide.json`) |
+| `/about`, `/contact` | `about`, `contact` | static; contact form posts to Formspree (mailto fallback) |
+| `/programmes`, `/programmes/[slug]` | `programmes` (old Education page), `programme` (old School Visit page) | `lib/programmes.ts` |
+| `/join`, `/donate` | `join`, `donate` | built from the contact page markup; donate shows the SBI details from the old site |
+| anything else | `not-found.tsx` via `[...missing]` | template 404 |
+
+The templates were imported once from the old repo (rewritten links/assets, fixed tel: links, removed the map-embed spam link, compressed images) and are now the source of truth — edit them directly.
 
 ### Admin
+- `app/admin/layout.tsx` is the admin root layout (Tailwind `globals.css`, noindex).
 - `/admin/login` — signs in with the Firebase client SDK, POSTs the ID token to `/api/auth`, then signs the client out.
 - `/admin/(protected)/*` — dashboard, blogs (list/new/[id]), gallery. `layout.tsx` verifies the session server-side and wraps pages in `components/admin/AdminShell.tsx` (fixed left sidebar on desktop, top bar + drawer on mobile). Pages use `AdminPageHeader`; the posts list is `components/admin/BlogTable.tsx` (thumbnails, status tabs, search, category filter).
 - `proxy.ts` — optimistic redirect to login when the cookie is missing (not a security boundary).
@@ -73,7 +78,9 @@ Mutations call `revalidatePath` so ISR pages update immediately.
 
 | File | Purpose |
 |---|---|
-| `lib/site.ts` | Contact details, nav links, donation details, Formspree endpoints — single source for footer/contact/donate |
+| `lib/site.ts` | Contact details, donation (bank) details, Formspree endpoints |
+| `legacy/templates/*.html` | Original site markup with `{{placeholders}}` (header, footer, sprite, one per page) |
+| `lib/legacy/*` | Template loader/escaping/Cloudinary URL helper, CMS-data partials, form attributes |
 | `lib/programmes.ts` | Programme content |
 | `lib/legacy-redirects.ts` | Old static URLs → new routes; `LEGACY_BLOG_REDIRECTS` is **generated** by `scripts/extract_content.py` |
 | `lib/validation.ts` | Request body parsing/validation + HTML sanitizing |
@@ -84,7 +91,7 @@ Mutations call `revalidatePath` so ISR pages update immediately.
 
 ## Firestore Schema
 
-- `blogs/{id}`: title, slug, category (one of `BLOG_CATEGORIES`), content (sanitized HTML), featuredImage, cloudinaryPublicId, tags[], author, publishedAt (ISO string), published, createdAt, updatedAt. Migrated docs use IDs `legacy-post-N`.
+- `blogs/{id}`: title, slug, category (one of `BLOG_CATEGORIES`), content (sanitized HTML), excerpt (card summary, optional), featuredImage, cloudinaryPublicId, tags[], author, publishedAt (ISO string), published, createdAt, updatedAt. Migrated docs use IDs `legacy-post-N`.
 - `gallery/{id}`: imageUrl, cloudinaryPublicId, category (one of `GALLERY_CATEGORIES`), caption, order, createdAt. Migrated: `legacy-gallery-NNN`.
 - `settings/site`: siteName, tagline, contactEmail, updatedAt.
 
@@ -126,7 +133,7 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 ### Pending (needs the owner)
 - [ ] Try the admin login form in a browser (only the server path was tested; password not available to Claude)
 - [ ] Formspree endpoints for contact + join
-- [ ] Donation bank/UPI details → `DONATION` in `lib/site.ts`
+- [ ] Confirm the donation bank details (copied from the old contact page) and add a UPI ID / account name if wanted
 - [ ] Review migrated posts in admin: approximate publish dates, categories for posts 5/6, add gallery captions
 - [ ] Vercel deploy + env vars; then DNS cutover of basefoundation.in, remove `CNAME`/Pages from the old repo, archive `sinankmuriyanal/Base` (confirm first)
 
@@ -138,3 +145,4 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 - **2026-10-16:** Upgraded to Next 16/React 19/Tiptap 3 (the Next 14 build had been failing on `next.config.ts`). Replaced raw-ID-token cookie with revocable session cookies gated on an admin claim, added a server-side admin gate, signed Cloudinary uploads, input validation and HTML sanitizing, and fixed the gallery multi-upload and editor bugs. Ported the real old-site content (programmes, join, donate, about, contact) and removed placeholder contact details and unverified stats. Added legacy redirects, sitemap and robots, rewrote the migration scripts (proper parsing, per-post images, idempotent seeding), and added Vitest + Playwright suites.
 - **2026-10-16 (later):** Ran the migration against the live Firebase + Cloudinary projects (23 posts, 66 gallery images), granted the admin claim, and deployed Firestore rules. Made gallery photos keyboard-accessible buttons with a labelled, Escape-closable lightbox, and hid empty category filters. The full suite passes with real data (24 unit + 34 e2e), plus a live admin round-trip.
 - **2026-10-16 (admin UI):** Redesigned the admin as a sidebar CMS shell, with a dark green nav, gold active marker, signed-in user and logout. The posts list is now a table with featured-image thumbnails, status tabs with counts, search and a category filter, switching to cards on mobile. The dashboard shows stat cards, recent posts with thumbnails, quick actions and a missing-captions prompt. Replaced `AdminNav`.
+- **2026-10-17:** Rebuilt the public site on the original basefoundation.in template, so it now looks exactly like the old site. It uses the old CSS, jQuery plugins, header and footer, with server-rendered fragments fed by Firestore and Cloudinary. Added Programmes, Join and Donate in the same style, an `excerpt` field (old listing excerpts backfilled for 21 posts), real share links, a working contact form, the bank details from the old site, and a template 404. Separate root layouts keep Tailwind confined to the admin. Rewrote the e2e suite against the template (41 passing).

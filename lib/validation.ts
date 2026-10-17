@@ -9,6 +9,7 @@ export interface BlogInput {
   slug: string;
   category: string;
   content: string;
+  excerpt: string;
   featuredImage: string | null;
   cloudinaryPublicId: string | null;
   tags: string[];
@@ -73,6 +74,7 @@ export function parseBlogInput(body: Record<string, unknown>): Result<BlogInput>
       slug,
       category: oneOf(body.category, BLOG_CATEGORIES, "General"),
       content: sanitizeContent(typeof body.content === "string" ? body.content : ""),
+      excerpt: str(body.excerpt).replace(/\s+/g, " ").slice(0, 400),
       featuredImage,
       cloudinaryPublicId: featuredImage ? optionalStr(body.cloudinaryPublicId) : null,
       tags,

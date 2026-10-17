@@ -22,6 +22,7 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
   const [slug, setSlug] = useState(blog?.slug ?? "");
   const [category, setCategory] = useState(blog?.category ?? "General");
   const [content, setContent] = useState(blog?.content ?? "");
+  const [excerpt, setExcerpt] = useState(blog?.excerpt ?? "");
   const [featuredImage, setFeaturedImage] = useState(blog?.featuredImage ?? "");
   const [cloudinaryPublicId, setCloudinaryPublicId] = useState(blog?.cloudinaryPublicId ?? "");
   const [tags, setTags] = useState<string[]>(blog?.tags ?? []);
@@ -55,7 +56,7 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
     setError("");
     setSaving(true);
 
-    const payload = { title, slug, category, content, featuredImage, cloudinaryPublicId, tags, author: author || null, published };
+    const payload = { title, slug, category, content, excerpt, featuredImage, cloudinaryPublicId, tags, author: author || null, published };
     const url = isNew ? "/api/admin/blogs" : `/api/admin/blogs/${blog!.id}`;
     const method = isNew ? "POST" : "PUT";
 
@@ -172,6 +173,21 @@ export default function BlogEditor({ blog, basePath = "/admin" }: Props) {
         <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
           <RichTextEditor content={content} onChange={setContent} />
         </div>
+      </div>
+
+      {/* Excerpt */}
+      <div>
+        <label htmlFor="excerpt" className="block text-sm font-medium text-slate-700 mb-1.5">Excerpt</label>
+        <textarea
+          id="excerpt"
+          value={excerpt}
+          onChange={(e) => setExcerpt(e.target.value)}
+          rows={3}
+          maxLength={400}
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition resize-none"
+          placeholder="Short summary shown on blog cards. Leave empty to use the opening of the post."
+        />
+        <p className="text-xs text-slate-400 mt-1">{excerpt.length}/400</p>
       </div>
 
       {/* Tags */}

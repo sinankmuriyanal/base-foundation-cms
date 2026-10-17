@@ -4,6 +4,8 @@ import { getLegacyRedirects } from "./lib/legacy-redirects";
 const nextConfig: NextConfig = {
   // Keep the dev-mode badge off the admin sidebar
   devIndicators: { position: "bottom-right" },
+  // Public pages read legacy/templates/*.html at runtime (ISR), so ship them with the server functions
+  outputFileTracingIncludes: { "/**": ["./legacy/templates/**"] },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
   },

@@ -9,23 +9,17 @@ export interface Programme {
   highlights: { title: string; body: string }[];
   /** Blog category whose posts document this programme. */
   blogCategory?: BlogCategory;
+  /** Photos from the original site (public/legacy/img): listing card and detail header. */
+  listImage: string;
+  image: string;
 }
 
 // Copy sourced from the original basefoundation.in pages (index, Education, School Visit, Madhyamik Sahayak).
 export const PROGRAMMES: Programme[] = [
   {
-    slug: "base-classroom",
-    title: "BASE Classrooms for Kids",
-    area: "Education",
-    summary:
-      "Empowering rural children through structured learning that blends religious and material education, fostering critical thinking, literacy, and essential life skills for holistic growth.",
-    body:
-      "The first success of the Base Foundation was the inauguration of the Base Classroom Harharia Sub-Center. Each classroom gives children in the village a steady, structured place to learn.",
-    highlights: [],
-    blogCategory: "Base Classroom",
-  },
-  {
     slug: "school-visit",
+    listImage: "/legacy/img/lambapara-primary-school-7.jpg",
+    image: "/legacy/img/kusumgachi-p-school-6.jpg",
     title: "School Visit",
     area: "Education",
     summary:
@@ -49,6 +43,8 @@ export const PROGRAMMES: Programme[] = [
   },
   {
     slug: "madhyamik-sahayak",
+    listImage: "/legacy/img/new/madhyamik-sahayok-class-3.jpg",
+    image: "/legacy/img/new/madhyamik-sahayok-class-2.jpg",
     title: "Madhyamik Sahayak",
     area: "Education",
     summary:
@@ -69,7 +65,22 @@ export const PROGRAMMES: Programme[] = [
     ],
   },
   {
+    slug: "base-classroom",
+    listImage: "/legacy/img/english4.jpg",
+    image: "/legacy/img/project_1.jpg",
+    title: "BASE Classrooms for Kids",
+    area: "Education",
+    summary:
+      "Empowering rural children through structured learning that blends religious and material education, fostering critical thinking, literacy, and essential life skills for holistic growth.",
+    body:
+      "The first success of the Base Foundation was the inauguration of the Base Classroom Harharia Sub-Center. Each classroom gives children in the village a steady, structured place to learn.",
+    highlights: [],
+    blogCategory: "Base Classroom",
+  },
+  {
     slug: "teachcraft",
+    listImage: "/legacy/img/Project_2.jpg",
+    image: "/legacy/img/Project_2.jpg",
     title: "Project TeachCraft: Teachers' Training",
     area: "Training",
     summary:
@@ -81,6 +92,8 @@ export const PROGRAMMES: Programme[] = [
   },
   {
     slug: "english-academy",
+    listImage: "/legacy/img/Project_4.jpg",
+    image: "/legacy/img/Project_4.jpg",
     title: "BASE English Academy",
     area: "Education",
     summary:
@@ -90,6 +103,8 @@ export const PROGRAMMES: Programme[] = [
   },
   {
     slug: "computer-academy",
+    listImage: "/legacy/img/Project_5.jpg",
+    image: "/legacy/img/Project_5.jpg",
     title: "BASE Computer Academy",
     area: "Education",
     summary:
@@ -98,6 +113,8 @@ export const PROGRAMMES: Programme[] = [
   },
   {
     slug: "parenting",
+    listImage: "/legacy/img/Project_3.jpg",
+    image: "/legacy/img/Project_3.jpg",
     title: "Parenting Classes",
     area: "Community",
     summary:
@@ -108,6 +125,8 @@ export const PROGRAMMES: Programme[] = [
   },
   {
     slug: "talent-hunt",
+    listImage: "/legacy/img/new/motivation-class-at-rph-2.jpg",
+    image: "/legacy/img/new/motivation-class-at-rph-2.jpg",
     title: "Talent Hunt",
     area: "Training",
     summary:
