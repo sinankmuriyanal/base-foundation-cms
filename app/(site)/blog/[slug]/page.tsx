@@ -10,14 +10,11 @@ import { blogExcerpt } from "@/lib/legacy/partials";
 import SiteShell from "@/components/legacy/SiteShell";
 import LegacyMain from "@/components/legacy/LegacyMain";
 
-export const revalidate = 3600;
+// Renders per request from the tagged data cache (lib/cache.ts), so admin edits appear immediately.
+export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export async function generateStaticParams() {
-  const blogs = await getPublishedBlogs();
-  return blogs.map((b) => ({ slug: b.slug }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const blog = await getBlogBySlug((await params).slug);

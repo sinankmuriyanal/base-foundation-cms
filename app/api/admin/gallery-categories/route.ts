@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { readJson, requireAdmin } from "@/lib/admin-api";
@@ -26,6 +26,6 @@ export async function POST(req: NextRequest) {
     createdAt: FieldValue.serverTimestamp(),
   });
 
-  revalidatePath("/gallery");
+  revalidateContent();
   return NextResponse.json({ id: ref.id, name: parsed.data, order });
 }

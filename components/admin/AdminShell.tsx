@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, ExternalLink, Image as ImageIcon, LayoutDashboard, LogOut, Menu, PenSquare, X } from "lucide-react";
+import { BookOpen, ExternalLink, FolderKanban, GalleryHorizontal, Image as ImageIcon, LayoutDashboard, LogOut, Menu, PenSquare, Settings, Sparkles, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -12,8 +12,42 @@ const NAV = [
   { href: "/admin/gallery", label: "Gallery", icon: ImageIcon },
 ];
 
+const WEBSITE_NAV = [
+  { href: "/admin/content/projects", label: "Projects", icon: FolderKanban },
+  { href: "/admin/content/programs", label: "BASE Programs", icon: Sparkles },
+  { href: "/admin/content/heroSlides", label: "Hero slides", icon: GalleryHorizontal },
+  { href: "/admin/content/team", label: "Team", icon: Users },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
+];
+
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function NavList({ items, pathname }: { items: typeof NAV; pathname: string }) {
+  return (
+        <ul className="space-y-0.5">
+      {items.map(({ href, label, icon: Icon }) => {
+        const active = isActive(pathname, href);
+        return (
+          <li key={href}>
+            <Link
+              href={href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                active ? "bg-white/10 text-white" : "text-white/65 hover:text-white hover:bg-white/5"
+              )}
+            >
+              {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-accent" aria-hidden />}
+              <Icon size={17} className={active ? "text-accent" : ""} />
+              {label}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 export default function AdminShell({ email, children }: { email: string | null; children: React.ReactNode }) {
@@ -66,31 +100,14 @@ export default function AdminShell({ email, children }: { email: string | null; 
         </Link>
       </div>
 
-      <nav aria-label="Admin" className="mt-6 px-3 flex-1">
+      <nav aria-label="Admin" className="mt-6 px-3 flex-1 overflow-y-auto">
         <p className="px-3 mb-2 text-[10px] uppercase tracking-[0.18em] text-white/35">Manage</p>
-        <ul className="space-y-0.5">
-          {NAV.map(({ href, label, icon: Icon }) => {
-            const active = isActive(pathname, href);
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
-                    active ? "bg-white/10 text-white" : "text-white/65 hover:text-white hover:bg-white/5"
-                  )}
-                >
-                  {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-accent" aria-hidden />}
-                  <Icon size={17} className={active ? "text-accent" : ""} />
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <NavList items={NAV} pathname={pathname} />
 
-        <p className="px-3 mt-8 mb-2 text-[10px] uppercase tracking-[0.18em] text-white/35">Website</p>
+        <p className="px-3 mt-8 mb-2 text-[10px] uppercase tracking-[0.18em] text-white/35">Website content</p>
+        <NavList items={WEBSITE_NAV} pathname={pathname} />
+
+        <p className="px-3 mt-8 mb-2 text-[10px] uppercase tracking-[0.18em] text-white/35">Live site</p>
         <a
           href="/"
           target="_blank"

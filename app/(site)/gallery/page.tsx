@@ -6,7 +6,8 @@ import SiteShell from "@/components/legacy/SiteShell";
 import LegacyMain from "@/components/legacy/LegacyMain";
 import WIDE_LEGACY_TILES from "@/legacy/templates/gallery-wide.json";
 
-export const revalidate = 3600;
+// Renders per request from the tagged data cache (lib/cache.ts), so admin edits appear immediately.
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Gallery | Base Foundation",

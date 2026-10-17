@@ -45,21 +45,25 @@ Every page wraps its body in `components/legacy/SiteShell.tsx` (template header/
 
 | URL | Template | Data |
 |---|---|---|
-| `/` | `home` | latest 5 posts in the original card column pattern |
+| `/` | `home` | hero slides, About text, Our Projects (projects with `showOnHome`), BASE Programs, latest 5 posts |
 | `/blog` (`?category=`) | `blog` | all published posts (excerpt field, else auto) |
 | `/blog/[slug]` | `blog-post` | post, real categories + 3 recent posts, share links |
 | `/gallery` | `gallery` | Isotope filter + Fancybox; migrated photos keep the old wide tiles (`gallery-wide.json`) |
-| `/about`, `/contact` | `about`, `contact` | static; contact form posts to Formspree (mailto fallback) |
-| `/programmes`, `/programmes/[slug]` | `programmes` (old Education page), `programme` (old School Visit page) | `lib/programmes.ts` |
+| `/about`, `/contact` | `about`, `contact` | mission/vision + team; contact details & bank from Settings; form posts to Formspree (mailto fallback) |
+| `/programmes`, `/programmes/[slug]` | `programmes` (old Education page), `programme` (old School Visit page) | `projects` collection |
 | `/join`, `/donate` | `join`, `donate` | built from the contact page markup; donate shows the SBI details from the old site |
 | anything else | `not-found.tsx` via `[...missing]` | template 404 |
 
 The templates were imported once from the old repo (rewritten links/assets, fixed tel: links, removed the map-embed spam link, compressed images) and are now the source of truth — edit them directly.
 
+### Caching
+Public pages are `force-dynamic` and read Firestore through `cached()` (`lib/cache.ts`, `unstable_cache` tagged `cms-content`). Every admin write calls `revalidateContent()` → `revalidateTag(tag, { expire: 0 })`, so changes show on the next visit (plain `revalidatePath` served one stale page first).
+
 ### Admin
 - `app/admin/layout.tsx` is the admin root layout (Tailwind `globals.css`, noindex).
 - `/admin/login` — signs in with the Firebase client SDK, POSTs the ID token to `/api/auth`, then signs the client out.
 - `/admin/(protected)/*` — dashboard, blogs (list/new/[id]), gallery. `layout.tsx` verifies the session server-side and wraps pages in `components/admin/AdminShell.tsx` (fixed left sidebar on desktop, top bar + drawer on mobile). Pages use `AdminPageHeader`; the posts list is `components/admin/BlogTable.tsx` (thumbnails, status tabs, search, category filter).
+- **Website content** (`/admin/content/[collection]`, `/admin/settings`): Projects, BASE Programs, Hero slides, Team, Site details, Page text. Defined once in `lib/content/schema.ts` (fields drive both the generic form in `components/admin/content/` and validation in `lib/content/validate.ts`); generic API under `/api/admin/content/[collection]` and `/api/admin/settings/[doc]`; reads in `lib/content/store.ts` fall back to `lib/content/defaults.ts` when Firebase isn't configured.
 - `proxy.ts` — optimistic redirect to login when the cookie is missing (not a security boundary).
 
 ### API (all admin routes go through `requireAdmin` in `lib/admin-api.ts`: 401 no/invalid session, 403 no admin claim)
@@ -81,7 +85,8 @@ Mutations call `revalidatePath` so ISR pages update immediately.
 
 | File | Purpose |
 |---|---|
-| `lib/site.ts` | Contact details, donation (bank) details, Formspree endpoints |
+| `lib/site.ts` | Site URL/name and Formspree endpoints (contact details live in Settings) |
+| `lib/content/*` | Website content types, schema, validation, store, defaults (original site copy) |
 | `legacy/templates/*.html` | Original site markup with `{{placeholders}}` (header, footer, sprite, one per page) |
 | `lib/legacy/*` | Template loader/escaping/Cloudinary URL helper, CMS-data partials, form attributes |
 | `lib/programmes.ts` | Programme content |
@@ -97,7 +102,8 @@ Mutations call `revalidatePath` so ISR pages update immediately.
 - `blogs/{id}`: title, slug, category (one of `BLOG_CATEGORIES`), content (sanitized HTML), excerpt (card summary, optional), featuredImage, cloudinaryPublicId, tags[], author, publishedAt (ISO string), published, createdAt, updatedAt. Migrated docs use IDs `legacy-post-N`.
 - `gallery/{id}`: imageUrl, cloudinaryPublicId, category (a `galleryCategories` name), caption, order, createdAt. Migrated: `legacy-gallery-NNN`.
 - `galleryCategories/{id}`: name, order. Managed on the admin Gallery → Categories tab (`lib/gallery-categories.ts`).
-- `settings/site`: siteName, tagline, contactEmail, updatedAt.
+- `projects/{slug}`, `programs/{id}`, `heroSlides/{id}`, `teamMembers/{id}`: fields per `lib/content/schema.ts` + `order`, `published`; images are Cloudinary URLs (with `<field>PublicId`) or `/legacy/img/...` paths.
+- `settings/site`: contact, bank, social links. `settings/pages`: homepage About text, programs intro, mission, vision, Join/Donate intros.
 
 ## Environment Variables
 
@@ -114,6 +120,7 @@ python -m venv .venv && .venv\Scripts\pip install -r scripts/requirements.txt
 .venv\Scripts\python scripts/seed_firebase.py     # needs scripts/serviceAccountKey.json; idempotent, --force to overwrite
 .venv\Scripts\python scripts/set_admin_claim.py <admin email>
 python scripts/deploy_rules.py                # deploys firestore.rules with the service account
+npx tsx scripts/seed-content.ts               # seeds projects/programs/hero/team/settings from lib/content/defaults.ts (skips existing)
 ```
 
 Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't listed there; set by content in `CATEGORY_OVERRIDES`). The old pages have no dates, so `publishedAt` = first commit of each `blog-postN.html` in the old repo (+N seconds to keep order) — approximate; correct in admin if needed. Template tags (#Donate, #Poor…) and the placeholder caption "He Need Your Protection" are dropped.
@@ -151,3 +158,4 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 - **2026-10-16 (admin UI):** Redesigned the admin as a sidebar CMS shell, with a dark green nav, gold active marker, signed-in user and logout. The posts list is now a table with featured-image thumbnails, status tabs with counts, search and a category filter, switching to cards on mobile. The dashboard shows stat cards, recent posts with thumbnails, quick actions and a missing-captions prompt. Replaced `AdminNav`.
 - **2026-10-17:** Rebuilt the public site on the original basefoundation.in template, so it now looks exactly like the old site. It uses the old CSS, jQuery plugins, header and footer, with server-rendered fragments fed by Firestore and Cloudinary. Added Programmes, Join and Donate in the same style, an `excerpt` field (old listing excerpts backfilled for 21 posts), real share links, a working contact form, the bank details from the old site, and a template 404. Separate root layouts keep Tailwind confined to the admin. Rewrote the e2e suite against the template (41 passing).
 - **2026-10-17 (later):** Deployed to Vercel (env vars set via the CLI, `.vercelignore` keeps local secrets out). Pinned `jwks-rsa` 3.2.2 because jwks-rsa 4 + ESM-only jose 6 crashed every request touching Firebase Auth on Vercel. Added photo-category management: a `galleryCategories` collection, an admin Categories tab (add, rename with photo cascade, reorder, delete with move-to), dynamic validation, and public gallery filters driven by it.
+- **2026-10-17 (content CMS):** Made every remaining website section editable in the admin: Projects (power the Programmes pages, with a homepage toggle), BASE Programs, Hero slides, Team, Site details (contact, bank, social links; the old dead "#" icons are hidden until set) and Page text. Built as one schema-driven system (generic form, validation and API, Cloudinary cleanup on replace/delete), seeded from the old site's copy. Switched public pages to a tagged data cache with immediate expiry, so edits show on the next visit.

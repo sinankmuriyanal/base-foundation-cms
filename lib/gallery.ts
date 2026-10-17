@@ -1,6 +1,7 @@
 import { Timestamp, type DocumentData } from "firebase-admin/firestore";
 import { getAdminDb, isFirebaseAdminConfigured } from "./firebase-admin";
 import type { GalleryImage } from "./types";
+import { cached } from "./cache";
 
 function toISO(val: unknown): string {
   if (val instanceof Timestamp) return val.toDate().toISOString();
@@ -20,8 +21,10 @@ function docToImage(id: string, data: DocumentData): GalleryImage {
   };
 }
 
-export async function getAllGalleryImages(): Promise<GalleryImage[]> {
+async function fetchGalleryImages(): Promise<GalleryImage[]> {
   if (!isFirebaseAdminConfigured()) return [];
   const snap = await getAdminDb().collection("gallery").orderBy("order", "asc").get();
   return snap.docs.map((d) => docToImage(d.id, d.data()));
 }
+
+export const getAllGalleryImages = cached(fetchGalleryImages, "gallery-images");

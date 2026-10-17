@@ -1,6 +1,7 @@
 import { Timestamp, type DocumentData } from "firebase-admin/firestore";
 import { getAdminDb, isFirebaseAdminConfigured } from "./firebase-admin";
 import type { Blog } from "./types";
+import { cached } from "./cache";
 
 function toISO(val: unknown): string {
   if (val instanceof Timestamp) return val.toDate().toISOString();
@@ -37,13 +38,13 @@ export async function getAllBlogs(): Promise<Blog[]> {
   return snap.docs.map((d) => docToPost(d.id, d.data())).sort(byDateDesc);
 }
 
-export async function getPublishedBlogs(): Promise<Blog[]> {
+async function fetchPublishedBlogs(): Promise<Blog[]> {
   if (!isFirebaseAdminConfigured()) return [];
   const snap = await getAdminDb().collection("blogs").where("published", "==", true).get();
   return snap.docs.map((d) => docToPost(d.id, d.data())).sort(byDateDesc);
 }
 
-export async function getBlogBySlug(slug: string): Promise<Blog | null> {
+async function fetchBlogBySlug(slug: string): Promise<Blog | null> {
   if (!isFirebaseAdminConfigured()) return null;
   const snap = await getAdminDb()
     .collection("blogs")
@@ -55,6 +56,9 @@ export async function getBlogBySlug(slug: string): Promise<Blog | null> {
   const doc = snap.docs[0];
   return docToPost(doc.id, doc.data());
 }
+
+export const getPublishedBlogs = cached(fetchPublishedBlogs, "published-blogs");
+export const getBlogBySlug = cached(fetchBlogBySlug, "blog-by-slug");
 
 export async function getBlogById(id: string): Promise<Blog | null> {
   const doc = await getAdminDb().collection("blogs").doc(id).get();

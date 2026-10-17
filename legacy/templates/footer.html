@@ -8,45 +8,23 @@
           /></a>
         </div>
 
-        <ul class="footer-socials">
-          <li class="footer-socials__item">
-            <a class="footer-socials__link" href="#"
-              ><i class="fa fa-facebook" aria-hidden="true"></i
-            ></a>
-          </li>
-          <li class="footer-socials__item">
-            <a class="footer-socials__link" href="#"
-              ><i class="fa fa-twitter" aria-hidden="true"></i
-            ></a>
-          </li>
-          <li class="footer-socials__item">
-            <a class="footer-socials__link" href="#"
-              ><i class="fa fa-google-plus" aria-hidden="true"></i
-            ></a>
-          </li>
-          <li class="footer-socials__item">
-            <a class="footer-socials__link" href="#"
-              ><i class="fa fa-instagram" aria-hidden="true"></i
-            ></a>
-          </li>
-        </ul>
+        <ul class="footer-socials">{{{socials_footer}}}</ul>
 
       </div>
       <div class="col-sm-6 col-lg-3">
         <h4 class="footer__title">Contacts</h4>
         <div class="footer-contacts">
           <p class="footer-contacts__address">
-            Bhimpur, Birbhum, Paikar, WestBengal, 731219
+            {{address}}
           </p>
           <p class="footer-contacts__phone">
             Phone:
-            <a href="tel:+917478573368">+91 74785 73368</a><br />
-            <a href="tel:+918371826110">+91 83718 26110</a>
+            {{{phones_footer}}}
           </p>
           <p class="footer-contacts__mail">
             Email:
-            <a href="mailto:basefoundationwb@gmail.com"
-              >basefoundationwb@gmail.com</a
+            <a href="mailto:{{email}}"
+              >{{email}}</a
             >
           </p>
         </div>

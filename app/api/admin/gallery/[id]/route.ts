@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { deleteCloudinaryImage } from "@/lib/cloudinary";
 import { readJson, requireAdmin } from "@/lib/admin-api";
@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   if (!(await ref.get()).exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await ref.update(update);
-  revalidatePath("/gallery");
+  revalidateContent();
   return NextResponse.json({ success: true });
 }
 
@@ -41,6 +41,6 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
   if (data.cloudinaryPublicId) await deleteCloudinaryImage(data.cloudinaryPublicId);
 
   await ref.delete();
-  revalidatePath("/gallery");
+  revalidateContent();
   return NextResponse.json({ success: true });
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { readJson, requireAdmin } from "@/lib/admin-api";
 import { GALLERY_CATEGORIES_COLLECTION, getGalleryCategories } from "@/lib/gallery-categories";
@@ -20,6 +20,6 @@ export async function POST(req: NextRequest) {
   const col = getAdminDb().collection(GALLERY_CATEGORIES_COLLECTION);
   await Promise.all(ids.map((id, order) => col.doc(id).update({ order })));
 
-  revalidatePath("/gallery");
+  revalidateContent();
   return NextResponse.json({ success: true });
 }

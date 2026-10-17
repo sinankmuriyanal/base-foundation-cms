@@ -19,6 +19,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    // Admin-managed website content (projects, BASE programs, hero slides, team)
+    match /{collection}/{id} {
+      allow read: if collection in ['projects', 'programs', 'heroSlides', 'teamMembers'];
+      allow write: if collection in ['projects', 'programs', 'heroSlides', 'teamMembers'] && isAdmin();
+    }
     match /settings/{id} {
       allow read: if true;
       allow write: if isAdmin();

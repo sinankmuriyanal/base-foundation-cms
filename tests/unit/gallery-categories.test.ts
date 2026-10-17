@@ -10,7 +10,7 @@ vi.mock("@/lib/firebase-admin", () => ({
   getAdminDb: () => db,
   getAdminAuth: () => ({ verifySessionCookie }),
 }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), unstable_cache: (fn: unknown) => fn }));
 vi.mock("firebase-admin/firestore", () => ({ FieldValue: { serverTimestamp: () => "SERVER_TS" }, Timestamp: class {} }));
 
 const collection = await import("@/app/api/admin/gallery-categories/route");

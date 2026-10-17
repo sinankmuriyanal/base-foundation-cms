@@ -44,6 +44,9 @@ class FakeCollection extends FakeQuery {
         if (!store.has(id)) throw new Error("not found");
         store.set(id, { ...store.get(id), ...patch });
       },
+      async set(data: Data, opts?: { merge?: boolean }) {
+        store.set(id, opts?.merge ? { ...store.get(id), ...data } : data);
+      },
       async delete() {
         store.delete(id);
       },

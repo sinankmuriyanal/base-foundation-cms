@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { readJson, requireAdmin } from "@/lib/admin-api";
 import { parseCategoryName } from "@/lib/validation";
@@ -43,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   await category.ref.update({ name });
   const moved = name === category.name ? 0 : await moveImages(category.name, name);
 
-  revalidatePath("/gallery");
+  revalidateContent();
   return NextResponse.json({ success: true, name, photosUpdated: moved });
 }
 
@@ -65,6 +65,6 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
   const moved = await moveImages(category.name, target.name);
   await category.ref.delete();
 
-  revalidatePath("/gallery");
+  revalidateContent();
   return NextResponse.json({ success: true, photosMoved: moved, movedTo: target.name });
 }

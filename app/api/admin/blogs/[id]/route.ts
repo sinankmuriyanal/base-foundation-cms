@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { deleteCloudinaryImage } from "@/lib/cloudinary";
@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
   if (prev.cloudinaryPublicId && prev.cloudinaryPublicId !== input.cloudinaryPublicId)
     await deleteCloudinaryImage(prev.cloudinaryPublicId);
 
-  revalidatePath("/", "layout");
+  revalidateContent();
   return NextResponse.json({ success: true, slug: input.slug });
 }
 
@@ -54,6 +54,6 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
   if (data.cloudinaryPublicId) await deleteCloudinaryImage(data.cloudinaryPublicId);
 
   await ref.delete();
-  revalidatePath("/", "layout");
+  revalidateContent();
   return NextResponse.json({ success: true });
 }

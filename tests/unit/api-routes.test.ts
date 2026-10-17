@@ -14,7 +14,7 @@ vi.mock("@/lib/firebase-admin", () => ({
   getAdminAuth: () => ({ verifySessionCookie }),
 }));
 vi.mock("@/lib/cloudinary", () => ({ deleteCloudinaryImage: (id: string) => deleteCloudinaryImage(id) }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), unstable_cache: (fn: unknown) => fn }));
 vi.mock("firebase-admin/firestore", () => ({
   FieldValue: { serverTimestamp: () => "SERVER_TS" },
   Timestamp: class {},
