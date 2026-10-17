@@ -1,0 +1,14 @@
+# Never upload local secrets or tooling to Vercel (env vars are set in the project instead)
+.env
+.env.*
+!.env.local.example
+scripts/serviceAccountKey.json
+*-firebase-adminsdk-*.json
+scripts/*.json
+scripts/__pycache__
+.venv
+node_modules
+.next
+test-results
+playwright-report
+.claude

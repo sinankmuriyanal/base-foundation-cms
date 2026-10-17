@@ -43,3 +43,6 @@ serviceAccountKey.json
 
 # Firebase service account keys (any download name)
 *-firebase-adminsdk-*.json
+
+.vercel
+.env*
