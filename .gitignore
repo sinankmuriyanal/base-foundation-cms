@@ -46,3 +46,4 @@ serviceAccountKey.json
 
 .vercel
 .env*
+!.env.local.example
