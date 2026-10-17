@@ -23,7 +23,8 @@ NGO website + CMS for Base Foundation (Bhimpur, Paikar, Birbhum, West Bengal). R
 | Rich text | Tiptap 3 (StarterKit incl. Link + Image); HTML sanitized server-side with `sanitize-html` |
 | Forms | Formspree (contact + join), endpoints via env |
 | Tests | Vitest (unit, `tests/unit`) + Playwright (e2e smoke, `tests/e2e`, desktop + mobile) |
-| Hosting | Vercel project `base-foundation-cms` (CLI deploys: `npx vercel deploy --prod`), https://base-foundation-cms.vercel.app |
+| Hosting | Vercel project `base-foundation-cms` (CLI deploys: `npx vercel deploy --prod`). Live at **https://basefoundation.in**; `www` 308-redirects to the apex |
+| DNS | GoDaddy (`domaincontrol.com`): `A @ 216.198.79.1`, `A @ 64.29.17.1`, `CNAME www d981ee5434433ae0.vercel-dns-017.com`; keep the `google-site-verification` TXT |
 
 ## Commands
 
@@ -146,7 +147,8 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 - [ ] Formspree endpoints for contact + join
 - [ ] Confirm the donation bank details (copied from the old contact page) and add a UPI ID / account name if wanted
 - [ ] Review migrated posts in admin: approximate publish dates, categories for posts 5/6, add gallery captions
-- [ ] Vercel deploy + env vars; then DNS cutover of basefoundation.in, remove `CNAME`/Pages from the old repo, archive `sinankmuriyanal/Base` (confirm first)
+- [x] Vercel deploy + env vars; DNS cutover of basefoundation.in (2026-10-17)
+- [ ] Retire the old site: remove `CNAME`, disable GitHub Pages, archive `sinankmuriyanal/Base` (confirm first)
 
 ---
 
@@ -159,3 +161,4 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 - **2026-10-17:** Rebuilt the public site on the original basefoundation.in template, so it now looks exactly like the old site. It uses the old CSS, jQuery plugins, header and footer, with server-rendered fragments fed by Firestore and Cloudinary. Added Programmes, Join and Donate in the same style, an `excerpt` field (old listing excerpts backfilled for 21 posts), real share links, a working contact form, the bank details from the old site, and a template 404. Separate root layouts keep Tailwind confined to the admin. Rewrote the e2e suite against the template (41 passing).
 - **2026-10-17 (later):** Deployed to Vercel (env vars set via the CLI, `.vercelignore` keeps local secrets out). Pinned `jwks-rsa` 3.2.2 because jwks-rsa 4 + ESM-only jose 6 crashed every request touching Firebase Auth on Vercel. Added photo-category management: a `galleryCategories` collection, an admin Categories tab (add, rename with photo cascade, reorder, delete with move-to), dynamic validation, and public gallery filters driven by it.
 - **2026-10-17 (content CMS):** Made every remaining website section editable in the admin: Projects (power the Programmes pages, with a homepage toggle), BASE Programs, Hero slides, Team, Site details (contact, bank, social links; the old dead "#" icons are hidden until set) and Page text. Built as one schema-driven system (generic form, validation and API, Cloudinary cleanup on replace/delete), seeded from the old site's copy. Switched public pages to a tagged data cache with immediate expiry, so edits show on the next visit.
+- **2026-10-17 (go-live):** basefoundation.in now serves the new site from Vercel: GoDaddy A/CNAME records switched from GitHub Pages, HTTPS issued, www redirects to the apex. Verified on the live domain that every page loads, all old static URLs redirect to their new routes, and the admin round-trip passes.
