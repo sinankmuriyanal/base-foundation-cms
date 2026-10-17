@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { readJson, requireAdmin } from "@/lib/admin-api";
 import { parseGalleryInput } from "@/lib/validation";
+import { getGalleryCategoryNames } from "@/lib/gallery-categories";
 
 export async function POST(req: NextRequest) {
   const denied = await requireAdmin(req);
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
   const body = await readJson(req);
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 
-  const parsed = parseGalleryInput(body);
+  const parsed = parseGalleryInput(body, await getGalleryCategoryNames());
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
   const db = getAdminDb();

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import firebase_admin
@@ -69,6 +70,13 @@ def main() -> None:
             "order": g["order"],
         }, args.force)
     print(f"gallery: {created} written, {len(gallery) - created} already existed")
+
+    defaults = ["Drawing Competition", "Motivation Class", "Logo Revealing", "Spoken English Course", "General"]
+    created = sum(
+        seed(db.collection("galleryCategories"), re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-"), {"name": name, "order": i}, args.force)
+        for i, name in enumerate(defaults)
+    )
+    print(f"gallery categories: {created} written, {len(defaults) - created} already existed")
 
     db.collection("settings").document("site").set({
         "siteName": "Base Foundation",

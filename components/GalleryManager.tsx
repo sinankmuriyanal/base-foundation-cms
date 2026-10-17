@@ -4,22 +4,23 @@ import { useState } from "react";
 import Image from "next/image";
 import { CldUploadWidget } from "next-cloudinary";
 import { Trash2, Upload, Pencil, Check, X } from "lucide-react";
-import { GALLERY_CATEGORIES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import type { GalleryImage } from "@/lib/types";
 
 interface Props {
   initialImages: GalleryImage[];
+  /** Category names in display order (managed on the Categories tab). */
+  categories: string[];
 }
 
-export default function GalleryManager({ initialImages }: Props) {
+export default function GalleryManager({ initialImages, categories }: Props) {
   const [images, setImages] = useState(initialImages);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editCategory, setEditCategory] = useState("");
   const [editCaption, setEditCaption] = useState("");
   const [filterCat, setFilterCat] = useState("All");
 
-  const allCats = ["All", ...GALLERY_CATEGORIES];
+  const allCats = ["All", ...categories];
   const filtered = filterCat === "All" ? images : images.filter((img) => img.category === filterCat);
 
   async function handleDelete(img: GalleryImage) {
@@ -138,7 +139,7 @@ export default function GalleryManager({ initialImages }: Props) {
                     onChange={(e) => setEditCategory(e.target.value)}
                     className="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none"
                   >
-                    {GALLERY_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                    {categories.map((c) => <option key={c}>{c}</option>)}
                   </select>
                   <input
                     value={editCaption}

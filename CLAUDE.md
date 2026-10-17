@@ -23,7 +23,7 @@ NGO website + CMS for Base Foundation (Bhimpur, Paikar, Birbhum, West Bengal). R
 | Rich text | Tiptap 3 (StarterKit incl. Link + Image); HTML sanitized server-side with `sanitize-html` |
 | Forms | Formspree (contact + join), endpoints via env |
 | Tests | Vitest (unit, `tests/unit`) + Playwright (e2e smoke, `tests/e2e`, desktop + mobile) |
-| Hosting | Vercel (planned) |
+| Hosting | Vercel project `base-foundation-cms` (CLI deploys: `npx vercel deploy --prod`), https://base-foundation-cms.vercel.app |
 
 ## Commands
 
@@ -70,6 +70,9 @@ The templates were imported once from the old repo (rewritten links/assets, fixe
 | PUT / DELETE | `/api/admin/blogs/[id]` | Update (keeps original `publishedAt`, deletes replaced Cloudinary image) / delete + image |
 | POST | `/api/admin/gallery` | Add image (appended after highest `order`) |
 | PATCH / DELETE | `/api/admin/gallery/[id]` | Update category/caption/order / delete + Cloudinary asset |
+| POST | `/api/admin/gallery-categories` | Create photo category (409 on duplicate name) |
+| PATCH / DELETE | `/api/admin/gallery-categories/[id]` | Rename (photos follow) / delete (`?moveTo=` photos first); "General" is protected |
+| POST | `/api/admin/gallery-categories/reorder` | `{ ids }` sets filter order |
 | POST | `/api/admin/cloudinary-sign` | Signs upload-widget params |
 
 Mutations call `revalidatePath` so ISR pages update immediately.
@@ -92,7 +95,8 @@ Mutations call `revalidatePath` so ISR pages update immediately.
 ## Firestore Schema
 
 - `blogs/{id}`: title, slug, category (one of `BLOG_CATEGORIES`), content (sanitized HTML), excerpt (card summary, optional), featuredImage, cloudinaryPublicId, tags[], author, publishedAt (ISO string), published, createdAt, updatedAt. Migrated docs use IDs `legacy-post-N`.
-- `gallery/{id}`: imageUrl, cloudinaryPublicId, category (one of `GALLERY_CATEGORIES`), caption, order, createdAt. Migrated: `legacy-gallery-NNN`.
+- `gallery/{id}`: imageUrl, cloudinaryPublicId, category (a `galleryCategories` name), caption, order, createdAt. Migrated: `legacy-gallery-NNN`.
+- `galleryCategories/{id}`: name, order. Managed on the admin Gallery → Categories tab (`lib/gallery-categories.ts`).
 - `settings/site`: siteName, tagline, contactEmail, updatedAt.
 
 ## Environment Variables
@@ -109,7 +113,7 @@ python -m venv .venv && .venv\Scripts\pip install -r scripts/requirements.txt
 .venv\Scripts\python scripts/upload_images.py     # needs Cloudinary keys in .env.local
 .venv\Scripts\python scripts/seed_firebase.py     # needs scripts/serviceAccountKey.json; idempotent, --force to overwrite
 .venv\Scripts\python scripts/set_admin_claim.py <admin email>
-firebase deploy --only firestore:rules
+python scripts/deploy_rules.py                # deploys firestore.rules with the service account
 ```
 
 Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't listed there; set by content in `CATEGORY_OVERRIDES`). The old pages have no dates, so `publishedAt` = first commit of each `blog-postN.html` in the old repo (+N seconds to keep order) — approximate; correct in admin if needed. Template tags (#Donate, #Poor…) and the placeholder caption "He Need Your Protection" are dropped.
@@ -146,3 +150,4 @@ Extraction notes: categories come from `blog.html` badges (posts 5 and 6 aren't 
 - **2026-10-16 (later):** Ran the migration against the live Firebase + Cloudinary projects (23 posts, 66 gallery images), granted the admin claim, and deployed Firestore rules. Made gallery photos keyboard-accessible buttons with a labelled, Escape-closable lightbox, and hid empty category filters. The full suite passes with real data (24 unit + 34 e2e), plus a live admin round-trip.
 - **2026-10-16 (admin UI):** Redesigned the admin as a sidebar CMS shell, with a dark green nav, gold active marker, signed-in user and logout. The posts list is now a table with featured-image thumbnails, status tabs with counts, search and a category filter, switching to cards on mobile. The dashboard shows stat cards, recent posts with thumbnails, quick actions and a missing-captions prompt. Replaced `AdminNav`.
 - **2026-10-17:** Rebuilt the public site on the original basefoundation.in template, so it now looks exactly like the old site. It uses the old CSS, jQuery plugins, header and footer, with server-rendered fragments fed by Firestore and Cloudinary. Added Programmes, Join and Donate in the same style, an `excerpt` field (old listing excerpts backfilled for 21 posts), real share links, a working contact form, the bank details from the old site, and a template 404. Separate root layouts keep Tailwind confined to the admin. Rewrote the e2e suite against the template (41 passing).
+- **2026-10-17 (later):** Deployed to Vercel (env vars set via the CLI, `.vercelignore` keeps local secrets out). Pinned `jwks-rsa` 3.2.2 because jwks-rsa 4 + ESM-only jose 6 crashed every request touching Firebase Auth on Vercel. Added photo-category management: a `galleryCategories` collection, an admin Categories tab (add, rename with photo cascade, reorder, delete with move-to), dynamic validation, and public gallery filters driven by it.

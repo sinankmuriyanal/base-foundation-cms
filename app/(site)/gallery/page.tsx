@@ -1,5 +1,6 @@
 import { getAllGalleryImages } from "@/lib/gallery";
-import { GALLERY_CATEGORIES } from "@/lib/types";
+import { getGalleryCategoryNames } from "@/lib/gallery-categories";
+import { FALLBACK_GALLERY_CATEGORY } from "@/lib/types";
 import { cld, escapeHtml, renderTemplate } from "@/lib/legacy/template";
 import SiteShell from "@/components/legacy/SiteShell";
 import LegacyMain from "@/components/legacy/LegacyMain";
@@ -12,16 +13,16 @@ export const metadata = {
   description: "Photos from Base Foundation programmes, competitions, classes and events.",
 };
 
-const categoryClass = (category: string) =>
-  `category_${GALLERY_CATEGORIES.indexOf(category as (typeof GALLERY_CATEGORIES)[number]) + 1 || GALLERY_CATEGORIES.length}`;
-
 export default async function GalleryPage() {
-  const images = await getAllGalleryImages();
+  const [images, categories] = await Promise.all([getAllGalleryImages(), getGalleryCategoryNames()]);
+  // Isotope filters on CSS classes; photos in an unknown category are grouped with the fallback.
+  const categoryClass = (category: string) =>
+    `category_${(categories.includes(category) ? categories.indexOf(category) : categories.indexOf(FALLBACK_GALLERY_CATEGORY)) + 1}`;
   const wide = new Set<number>(WIDE_LEGACY_TILES);
 
   const filters = [
     `<li class="filter-panel__item filter-panel__item--active" data-filter="*"><span>All Photos</span></li>`,
-    ...GALLERY_CATEGORIES.filter((c) => images.some((img) => img.category === c)).map(
+    ...categories.filter((c) => images.some((img) => categoryClass(img.category) === categoryClass(c))).map(
       (c) => `<li class="filter-panel__item" data-filter=".${categoryClass(c)}"><span>${escapeHtml(c)}</span></li>`
     ),
   ].join("\n");

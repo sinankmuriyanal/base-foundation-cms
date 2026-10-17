@@ -37,7 +37,8 @@ export const BLOG_CATEGORIES = [
   "General",
 ] as const;
 
-export const GALLERY_CATEGORIES = [
+/** Gallery categories are managed in Firestore (`galleryCategories`); these are the initial set. */
+export const DEFAULT_GALLERY_CATEGORIES = [
   "Drawing Competition",
   "Motivation Class",
   "Logo Revealing",
@@ -45,5 +46,13 @@ export const GALLERY_CATEGORIES = [
   "General",
 ] as const;
 
+/** Fallback category: always exists, cannot be renamed or deleted. */
+export const FALLBACK_GALLERY_CATEGORY = "General";
+
+export interface GalleryCategory {
+  id: string;
+  name: string;
+  order: number;
+}
+
 export type BlogCategory = (typeof BLOG_CATEGORIES)[number];
-export type GalleryCategory = (typeof GALLERY_CATEGORIES)[number];

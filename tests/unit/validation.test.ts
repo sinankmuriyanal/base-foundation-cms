@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseBlogInput, parseGalleryInput, parseGalleryUpdate } from "@/lib/validation";
+import { parseBlogInput, parseCategoryName, parseGalleryInput, parseGalleryUpdate } from "@/lib/validation";
 
 const IMG = "https://res.cloudinary.com/demo/image/upload/v1/a.jpg";
+const CATS = ["Drawing Competition", "Logo Revealing", "General"];
 
 describe("parseBlogInput", () => {
   it("requires a title", () => {
@@ -46,16 +47,25 @@ describe("parseBlogInput", () => {
 
 describe("parseGalleryInput", () => {
   it("requires a Cloudinary url and public id", () => {
-    expect(parseGalleryInput({ imageUrl: IMG }).ok).toBe(false);
-    expect(parseGalleryInput({ imageUrl: "https://x.org/a.jpg", cloudinaryPublicId: "p" }).ok).toBe(false);
-    const r = parseGalleryInput({ imageUrl: IMG, cloudinaryPublicId: "p", category: "Nope" });
+    expect(parseGalleryInput({ imageUrl: IMG }, CATS).ok).toBe(false);
+    expect(parseGalleryInput({ imageUrl: "https://x.org/a.jpg", cloudinaryPublicId: "p" }, CATS).ok).toBe(false);
+    const r = parseGalleryInput({ imageUrl: IMG, cloudinaryPublicId: "p", category: "Nope" }, CATS);
     expect(r).toEqual({ ok: true, data: { imageUrl: IMG, cloudinaryPublicId: "p", category: "General", caption: "" } });
   });
 });
 
 describe("parseGalleryUpdate", () => {
   it("keeps only known, valid fields", () => {
-    expect(parseGalleryUpdate({ caption: " hi ", order: "3", admin: true })).toEqual({ caption: "hi" });
-    expect(parseGalleryUpdate({ category: "Logo Revealing", order: 2 })).toEqual({ category: "Logo Revealing", order: 2 });
+    expect(parseGalleryUpdate({ caption: " hi ", order: "3", admin: true }, CATS)).toEqual({ caption: "hi" });
+    expect(parseGalleryUpdate({ category: "Logo Revealing", order: 2 }, CATS)).toEqual({ category: "Logo Revealing", order: 2 });
+  });
+});
+
+describe("parseCategoryName", () => {
+  it("trims and collapses whitespace, rejects empty and over-long names", () => {
+    expect(parseCategoryName("  Independence   Day ")).toEqual({ ok: true, data: "Independence Day" });
+    expect(parseCategoryName("   ").ok).toBe(false);
+    expect(parseCategoryName("x".repeat(41)).ok).toBe(false);
+    expect(parseCategoryName(42).ok).toBe(false);
   });
 });

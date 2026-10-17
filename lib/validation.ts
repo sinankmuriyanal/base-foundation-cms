@@ -1,5 +1,5 @@
 import sanitizeHtml from "sanitize-html";
-import { BLOG_CATEGORIES, GALLERY_CATEGORIES } from "./types";
+import { BLOG_CATEGORIES, FALLBACK_GALLERY_CATEGORY } from "./types";
 import { slugify } from "./utils";
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -84,7 +84,8 @@ export function parseBlogInput(body: Record<string, unknown>): Result<BlogInput>
   };
 }
 
-export function parseGalleryInput(body: Record<string, unknown>): Result<GalleryInput> {
+/** `categories` is the current list from Firestore; unknown values fall back to "General". */
+export function parseGalleryInput(body: Record<string, unknown>, categories: readonly string[]): Result<GalleryInput> {
   const imageUrl = str(body.imageUrl);
   const cloudinaryPublicId = str(body.cloudinaryPublicId);
   if (!imageUrl || !cloudinaryPublicId)
@@ -96,16 +97,23 @@ export function parseGalleryInput(body: Record<string, unknown>): Result<Gallery
     data: {
       imageUrl,
       cloudinaryPublicId,
-      category: oneOf(body.category, GALLERY_CATEGORIES, "General"),
+      category: oneOf(body.category, categories, FALLBACK_GALLERY_CATEGORY),
       caption: str(body.caption).slice(0, 300),
     },
   };
 }
 
-export function parseGalleryUpdate(body: Record<string, unknown>): Record<string, unknown> {
+export function parseGalleryUpdate(body: Record<string, unknown>, categories: readonly string[]): Record<string, unknown> {
   const update: Record<string, unknown> = {};
-  if (body.category !== undefined) update.category = oneOf(body.category, GALLERY_CATEGORIES, "General");
+  if (body.category !== undefined) update.category = oneOf(body.category, categories, FALLBACK_GALLERY_CATEGORY);
   if (body.caption !== undefined) update.caption = str(body.caption).slice(0, 300);
   if (typeof body.order === "number" && Number.isFinite(body.order)) update.order = body.order;
   return update;
+}
+
+export function parseCategoryName(value: unknown): Result<string> {
+  const name = str(value).replace(/\s+/g, " ");
+  if (!name) return { ok: false, error: "Category name required" };
+  if (name.length > 40) return { ok: false, error: "Category name must be 40 characters or fewer" };
+  return { ok: true, data: name };
 }

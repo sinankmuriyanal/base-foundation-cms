@@ -4,6 +4,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { deleteCloudinaryImage } from "@/lib/cloudinary";
 import { readJson, requireAdmin } from "@/lib/admin-api";
 import { parseGalleryUpdate } from "@/lib/validation";
+import { getGalleryCategoryNames } from "@/lib/gallery-categories";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -15,7 +16,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const body = await readJson(req);
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 
-  const update = parseGalleryUpdate(body);
+  const update = parseGalleryUpdate(body, await getGalleryCategoryNames());
   if (Object.keys(update).length === 0)
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
 
